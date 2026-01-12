@@ -1,16 +1,17 @@
 
 
+using MapsterMapper;
+using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
+using SurveyBasket.Api;
+using SurveyBasket.Api.Contract.Validation;
 using SurveyBasket.Api.Services;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddScoped<IPollsServices, PollsServices>();
+builder.Services.AddDependancy();
 
 
 var app = builder.Build();
