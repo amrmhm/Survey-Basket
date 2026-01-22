@@ -3,7 +3,8 @@
 using MapsterMapper;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using SurveyBasket.Api;
-using SurveyBasket.Api.Contract.Validation;
+using SurveyBasket.Api.Contract;
+using SurveyBasket.Api.Persistence;
 using SurveyBasket.Api.Services;
 using System.Reflection;
 
@@ -11,8 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddDependancy();
-
+builder.Services.AddDependancy(builder.Configuration);
 
 var app = builder.Build();
 
@@ -23,11 +23,20 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Add Middleware ExHandler
+//app.UseExceptionHandler();
+
 
 app.UseHttpsRedirection();
+//UseAuthorization ???  police ???? ???? 
+//default Police
 
+app.UseCors();
+
+//Add Police Or Multi Police
+//app.UseCors("MyPolice1");
+//app.UseCors("MyPolice2");
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
