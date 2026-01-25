@@ -44,12 +44,15 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     {
 
         var entries = ChangeTracker.Entries<AuditableEntity>();
-        var currentUseId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        //this Extentions Methods to Return UserId from Authorize used http context
+        var currentUseId = _httpContextAccessor.HttpContext?.User.GetUserId();
+        //or
+        //var currentUseId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         foreach (var entryEntities in entries)
         {
             if(entryEntities.State == EntityState.Added)
             {
-                entryEntities.Property(c => c.CreateById).CurrentValue = currentUseId;
+                entryEntities.Property(c => c.CreateById).CurrentValue = currentUseId!;
             }
             else if(entryEntities.State == EntityState.Modified)
             {

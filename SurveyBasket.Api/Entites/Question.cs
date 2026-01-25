@@ -12,4 +12,5 @@ public sealed class Question :AuditableEntity
     public Poll Poll { get; set; } = default!;
 
     public ICollection<Answer> Answer { get; set; } = [];
+    public ICollection<VoteAnswer> VoteAnswer { get; set; } = [];
 }

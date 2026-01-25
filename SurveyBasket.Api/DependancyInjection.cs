@@ -32,11 +32,13 @@ public static class  DependancyInjection
         services.AddScoped<IAuthServices, AuthServices>();
         services.AddScoped<IJwtProvider, JwtProvider>();
         services.AddScoped<IQuestionServices, QuestionServices>();
+        services.AddScoped<IVoteServices, VoteServices>();
+        services.AddScoped<IResualtServices, ResualtServices>();
 
 
         // Add AddExHandler
-        //services.AddExceptionHandler<GLobleExceptionHandler>();
-        //services.AddProblemDetails();
+        services.AddExceptionHandler<GLobleExceptionHandler>();
+        services.AddProblemDetails();
 
        
 

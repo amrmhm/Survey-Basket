@@ -1,6 +1,7 @@
 
 
 using MapsterMapper;
+using Serilog;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using SurveyBasket.Api;
 using SurveyBasket.Api.Contract;
@@ -14,6 +15,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDependancy(builder.Configuration);
 
+//Add SeriLog to Read From AppSetting
+builder.Host.UseSerilog((context, configration) =>
+configration.ReadFrom.Configuration(context.Configuration)
+
+
+);
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -23,8 +31,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+//Add Middleware To add http request To Log File
+app.UseSerilogRequestLogging();
+
 // Add Middleware ExHandler
-//app.UseExceptionHandler();
+app.UseExceptionHandler();
 
 
 app.UseHttpsRedirection();

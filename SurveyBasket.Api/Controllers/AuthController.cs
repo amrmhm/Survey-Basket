@@ -7,9 +7,10 @@ using OneOf.Types;
 namespace SurveyBasket.Api.Controllers;
 [Route("[controller]")]
 [ApiController]
-public class AuthController(IAuthServices authServices,IOptions<JwtOption> jwtOption) : ControllerBase
+public class AuthController(IAuthServices authServices,IOptions<JwtOption> jwtOption ,ILogger<AuthServices> logger) : ControllerBase
 {
     private readonly IAuthServices _authServices = authServices;
+    private readonly ILogger<AuthServices> _logger = logger;
     private readonly JwtOption _jwtOption = jwtOption.Value;
 
     //[HttpPost("")]
@@ -29,7 +30,7 @@ public class AuthController(IAuthServices authServices,IOptions<JwtOption> jwtOp
     [HttpPost("")]
     public async Task<IActionResult> LoginAsync([FromBody] LoginRequest request , CancellationToken cancellationToken)
     {
-       
+        _logger.LogInformation("Logging with : {email} and {password}", request.Email, request.Password);
         var authResualt = await _authServices.GetTokenAsync(request.Email , request.Password , cancellationToken);
 
         var problem = new ProblemDetails();

@@ -10,7 +10,7 @@ public class QuestionServices(ApplicationDbContext context) : IQuestionServices
 {
     private readonly ApplicationDbContext _context = context;
 
-    public async Task<Resault<IEnumerable<ResponseQuestion>>> GetAllAsync(int pollId, CancellationToken cancellationToken)
+    public async Task<Resault<IEnumerable<ResponseQuestion>>> GetAllAsync(int pollId, CancellationToken cancellationToken = default)
     {
         var isExistPoll = await _context.Polls.AnyAsync(c => c.Id == pollId, cancellationToken);
 
@@ -35,7 +35,7 @@ public class QuestionServices(ApplicationDbContext context) : IQuestionServices
         return Resault.Success<IEnumerable<ResponseQuestion>>(question);
     }
 
-    public async Task<Resault<IEnumerable<ResponseQuestion>>> GetAvalibaleAsync(int pollId, string userId, CancellationToken cancellationToken)
+    public async Task<Resault<IEnumerable<ResponseQuestion>>> GetAvalibaleAsync(int pollId, string userId, CancellationToken cancellationToken = default)
     {
         var hasVote = await _context.Votes.AnyAsync(c => c.PollId == pollId && c.UserId == userId, cancellationToken);
         if (hasVote)
@@ -65,7 +65,7 @@ public class QuestionServices(ApplicationDbContext context) : IQuestionServices
                  
     }
 
-    public async Task<Resault<ResponseQuestion>> GetAsync(int pollId, int id, CancellationToken cancellationToken)
+    public async Task<Resault<ResponseQuestion>> GetAsync(int pollId, int id, CancellationToken cancellationToken = default)
     {
 
         var question = await _context.Questions
@@ -79,7 +79,7 @@ public class QuestionServices(ApplicationDbContext context) : IQuestionServices
             return Resault.Faliure<ResponseQuestion>(QuestionErrors.NotFound);
             return Resault.Success(question);
     }
-    public async Task<Resault<ResponseQuestion>> CreateAsync(int pollId, RequestQuestion request, CancellationToken cancellationToken)
+    public async Task<Resault<ResponseQuestion>> CreateAsync(int pollId, RequestQuestion request, CancellationToken cancellationToken = default)
     {
         var isExistPoll = await _context.Polls.AnyAsync(c => c.Id == pollId ,cancellationToken);
 
