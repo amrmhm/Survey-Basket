@@ -4,7 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace SurveyBasket.Api.Controllers;
 [Route("api/polls/{pollId}/[controller]")]
 [ApiController]
-[Authorize]
+[HasPermission(Permission.GetResaults)]
+
 public class ResaultsController(IResualtServices resualtServices) : ControllerBase
 {
     private readonly IResualtServices _resualtServices = resualtServices;

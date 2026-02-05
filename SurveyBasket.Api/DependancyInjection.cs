@@ -1,10 +1,14 @@
-﻿using MapsterMapper;
+﻿using Hangfire;
+using MapsterMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using SurveyBasket.Api.Authentication;
 using SurveyBasket.Api.Persistence;
+using SurveyBasket.Api.Setting;
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -19,6 +23,9 @@ public static class  DependancyInjection
     {
 
         services.AddControllers();
+        // add Hybrid Cache
+
+        services.AddHybridCache();
 
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         services.AddSwaggerServices()
@@ -26,15 +33,24 @@ public static class  DependancyInjection
             .AddFluentValidationServices()
             .AddCorsPoliceServices(configuration)
             .AddConnectionString(configuration)
-            .AddAuthenticationConfig(configuration);
+            .AddAuthenticationConfig(configuration)
+            .AddBackgroundJob(configuration);
 
         services.AddScoped<IPollsServices, PollsServices>();
+        services.AddScoped<IEmailSender, EmailServices>();
+        services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IUserServices, UserServices>();
         services.AddScoped<IAuthServices, AuthServices>();
         services.AddScoped<IJwtProvider, JwtProvider>();
         services.AddScoped<IQuestionServices, QuestionServices>();
         services.AddScoped<IVoteServices, VoteServices>();
         services.AddScoped<IResualtServices, ResualtServices>();
 
+
+        // services.AddScoped<ICacheServices, CacheServices>();
+
+        //Add AddHttpContextAccessor to Use In Auth Services to Get Origin
+        services.AddHttpContextAccessor();
 
         // Add AddExHandler
         services.AddExceptionHandler<GLobleExceptionHandler>();
@@ -123,12 +139,22 @@ public static class  DependancyInjection
     }
     private static IServiceCollection AddAuthenticationConfig(this IServiceCollection services , IConfiguration configuration)
     {  //Add Identity Config
-        services.AddIdentity<ApplicationUser, IdentityRole>()
-             .AddEntityFrameworkStores<ApplicationDbContext>();
+        services.AddIdentity<ApplicationUser, ApplicationRole>()
+             .AddEntityFrameworkStores<ApplicationDbContext>()
+             .AddDefaultTokenProviders();
+
+        //Add Permission Policy Services
+
+        services.AddTransient<IAuthorizationHandler ,PermissionAuthorizationHandler >();
+        services.AddTransient<IAuthorizationPolicyProvider , PermissionAuthorizationPolicyProvider>();
+
+        // Add Mail Setting TO Use By IOption<MailSetting>
+
+        services.Configure<MailSetting>(configuration.GetSection(nameof(MailSetting)));
 
         //Add Jwt Option To Use In Services Or Controller
 
-       // services.Configure<JwtOption>(configuration.GetSection(JwtOption.SectionName)); // ==>>||
+        // services.Configure<JwtOption>(configuration.GetSection(JwtOption.SectionName)); // ==>>||
 
         //Or Use BindConfigration Methods And ValidateDataAnnotations And ValidateOnStart TO Validate Value 
         services.AddOptions<JwtOption>().BindConfiguration(JwtOption.SectionName)
@@ -167,7 +193,34 @@ public static class  DependancyInjection
                 //ValidAudience = configuration["Jwt:Audience"]
             };
         });
-      
+
+        //Add Change Default Identity  
+        services.Configure<IdentityOptions>(options =>
+        {
+            // Default Password settings.
+            options.Password.RequiredLength = 8;
+            // Default User settings.
+            options.User.RequireUniqueEmail = true;
+            // Default SignIn settings.
+            options.SignIn.RequireConfirmedEmail = true;
+
+        });
+
+        return services;
+    }
+
+    private static IServiceCollection AddBackgroundJob(this IServiceCollection services, IConfiguration configuration)
+    {
+
+        // Add Hangfire services.
+        services.AddHangfire(config => config
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseSqlServerStorage(configuration.GetConnectionString("HangfireConnection")));
+
+        // Add the processing server as IHostedService
+        services.AddHangfireServer();
 
         return services;
     }

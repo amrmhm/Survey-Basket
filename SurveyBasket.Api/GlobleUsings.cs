@@ -15,6 +15,11 @@ global using SurveyBasket.Api.Errors;
 global using Microsoft.AspNetCore.Authorization;
 global using SurveyBasket.Api.Extention;
 global using SurveyBasket.Api.Contract.Resault;
+global using Microsoft.AspNetCore.Identity.UI.Services;
+global using Microsoft.EntityFrameworkCore.Metadata.Builders;
+global using SurveyBasket.Api.Abstractions.Const;
+global using SurveyBasket.Api.Authentication.Filters;
+
 
 
 

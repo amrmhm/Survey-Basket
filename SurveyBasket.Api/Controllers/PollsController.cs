@@ -23,12 +23,14 @@ public class PollsController(IPollsServices pollsServices) : ControllerBase
 
 
     [HttpGet("")]
+    [HasPermission(Permission.GetPolls)]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
         
         return Ok(await _pollsServices.GetAllAsync(cancellationToken));
 
     }
+    [Authorize(Roles =DefaultRole.Member)]
     [HttpGet("current")]
     public async Task<IActionResult> GetCurrent(CancellationToken cancellationToken)
     {
@@ -38,6 +40,8 @@ public class PollsController(IPollsServices pollsServices) : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [HasPermission(Permission.GetPolls)]
+
 
     public async Task<IActionResult> Get([FromRoute] int id, CancellationToken cancellationToken)
     {
@@ -50,6 +54,8 @@ public class PollsController(IPollsServices pollsServices) : ControllerBase
     }
 
     [HttpPost("")]
+    [HasPermission(Permission.AddPolls)]
+
 
     public async Task<IActionResult> Create([FromBody] RequestPoll request, CancellationToken cancellationToken)
     {
@@ -62,6 +68,8 @@ public class PollsController(IPollsServices pollsServices) : ControllerBase
 
     }
     [HttpPut("{id}")]
+    [HasPermission(Permission.UpdatePolls)]
+
 
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] RequestPoll request, CancellationToken cancellationToken)
     {
@@ -72,6 +80,8 @@ public class PollsController(IPollsServices pollsServices) : ControllerBase
 
      }
     [HttpDelete("{id}")]
+    [HasPermission(Permission.DeletePolls)]
+
     public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken cancellationToken)
     {
         var resault = await _pollsServices.DeleteAsync(id, cancellationToken);
@@ -80,6 +90,8 @@ public class PollsController(IPollsServices pollsServices) : ControllerBase
             : NoContent();
     }
     [HttpPut("{id}/TogglePublish")]
+    [HasPermission(Permission.UpdatePolls)]
+
     public async Task<IActionResult> TogglePublish([FromRoute] int id, CancellationToken cancellationToken)
     {
         var resault = await _pollsServices.TogglePublishStatusAsync(id, cancellationToken);

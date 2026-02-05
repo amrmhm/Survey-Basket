@@ -1,22 +1,26 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 using SurveyBasket.Api.Contract.Votes;
 using System.Security.Claims;
 
 namespace SurveyBasket.Api.Controllers;
 [Route("api/polls/{pollId}/vote")]
 [ApiController]
-[Authorize]
+[Authorize(Roles =(DefaultRole.Member))]
 public class VotesController(IQuestionServices questionServices , IVoteServices voteServices) : ControllerBase
 {
     private readonly IQuestionServices _questionServices = questionServices;
     private readonly IVoteServices _voteServices = voteServices;
 
     [HttpGet("")]
+    //[ResponseCache(Duration = 60)] // Do not Have Use ResponseCache Return Status Code 200 Return Ok() 
+    //[OutputCache(PolicyName ="Polls")] // Output Cache 
+    
     public async Task<IActionResult> StartVote ([FromRoute] int pollId , CancellationToken cancellationToken)
     {
         //this Extentions Methods to Return UserId from Authorize used http context
-        var userId = User.GetUserId();
+        var userId = "2dd69da0-8b28-4112-af7b-f463f49c0213";  //User.GetUserId();
         var resault = await _questionServices.GetAvalibaleAsync(pollId, userId!, cancellationToken);
         return resault.IsSuccess 
             ? Ok(resault.Value)

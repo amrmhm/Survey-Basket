@@ -7,10 +7,9 @@ using OneOf.Types;
 namespace SurveyBasket.Api.Controllers;
 [Route("[controller]")]
 [ApiController]
-public class AuthController(IAuthServices authServices,IOptions<JwtOption> jwtOption ,ILogger<AuthServices> logger) : ControllerBase
+public class AuthController(IAuthServices authServices,IOptions<JwtOption> jwtOption ) : ControllerBase
 {
     private readonly IAuthServices _authServices = authServices;
-    private readonly ILogger<AuthServices> _logger = logger;
     private readonly JwtOption _jwtOption = jwtOption.Value;
 
     //[HttpPost("")]
@@ -30,7 +29,7 @@ public class AuthController(IAuthServices authServices,IOptions<JwtOption> jwtOp
     [HttpPost("")]
     public async Task<IActionResult> LoginAsync([FromBody] LoginRequest request , CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Logging with : {email} and {password}", request.Email, request.Password);
+       
         var authResualt = await _authServices.GetTokenAsync(request.Email , request.Password , cancellationToken);
 
         var problem = new ProblemDetails();
@@ -65,5 +64,53 @@ public class AuthController(IAuthServices authServices,IOptions<JwtOption> jwtOp
             : authResault.ToProblem(); ;
        
     }
- 
-}
+
+    [HttpPost("register")]
+    public async Task<IActionResult> GetRefresh([FromBody] RequestRegister request, CancellationToken cancellationToken)
+    {
+        var authResault = await _authServices.RegisterAsync(request, cancellationToken);
+
+        return authResault.IsSuccess
+            ? Ok()
+            : authResault.ToProblem();
+    }
+    [HttpPost("confirm-email")]
+    public async Task<IActionResult> ConfirmEmail([FromBody] RequestConfirmEmail request)
+    {
+        var authResault = await _authServices.ConfirmEmailAsync(request);
+
+        return authResault.IsSuccess
+            ? Ok()
+            : authResault.ToProblem();
+    }
+    [HttpPost("resend-confirm-email")]
+    public async Task<IActionResult> ResendConfirmEmail([FromBody] RequestResendConfirmEmail request)
+    {
+        var authResault = await _authServices.ResendConfirmEmailAsync(request);
+
+        return authResault.IsSuccess
+            ? Ok()
+            : authResault.ToProblem();
+    }
+    [HttpPost("forget-password")]
+    public async Task<IActionResult> ForgetPassword([FromBody] RequestForgetPassword request)
+    {
+        var authResault = await _authServices.SendResetPasswordAsync(request.Email);
+
+        return authResault.IsSuccess
+            ? Ok()
+            : authResault.ToProblem();
+    }
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] RequestResetPassword request)
+    {
+        var authResault = await _authServices.ResetPasswordAsync(request);
+
+        return authResault.IsSuccess
+            ? Ok()
+            : authResault.ToProblem();
+    }
+  
+
+
+    }

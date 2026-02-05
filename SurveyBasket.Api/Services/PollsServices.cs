@@ -1,13 +1,17 @@
 ﻿
 using Azure.Core;
+using Hangfire;
 using SurveyBasket.Api.Persistence;
 using System.Threading;
 
 namespace SurveyBasket.Api.Services;
 
-public class PollsServices(ApplicationDbContext context) : IPollsServices
+public class PollsServices(ApplicationDbContext context,
+    INotificationService notificationService) : IPollsServices
 {
     private readonly ApplicationDbContext _context = context;
+    private readonly INotificationService _notificationService = notificationService;
+
     public async Task<IEnumerable<ResponsePoll>> GetAllAsync(CancellationToken cancellationToken = default) =>
         await _context.Polls
         .ProjectToType<ResponsePoll>()
@@ -79,6 +83,9 @@ public class PollsServices(ApplicationDbContext context) : IPollsServices
 
         currentPoll.IsPublished = !currentPoll.IsPublished;
         await _context.SaveChangesAsync(cancellationToken);
+
+        if (currentPoll.IsPublished && currentPoll.StartsAt == DateOnly.FromDateTime(DateTime.UtcNow))
+            BackgroundJob.Enqueue(() => _notificationService.SendNewPollNotification(currentPoll.Id));
         return Resault.Success();
     }
 }
