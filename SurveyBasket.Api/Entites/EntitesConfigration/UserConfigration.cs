@@ -35,7 +35,9 @@ public class UserConfigration : IEntityTypeConfiguration<ApplicationUser>
                 ConcurrencyStamp = DefaultUser.AdminConcurrencyStamp,
                 EmailConfirmed = true,
                 PasswordHash = passwordHasher.HashPassword(null!, DefaultUser.AdminPasswoard)
+                
 
             });
+        
     }
 }

@@ -45,6 +45,7 @@ public static class  DependancyInjection
         services.AddScoped<IQuestionServices, QuestionServices>();
         services.AddScoped<IVoteServices, VoteServices>();
         services.AddScoped<IResualtServices, ResualtServices>();
+        services.AddScoped<IRoleServices, RoleServices>();
 
 
         // services.AddScoped<ICacheServices, CacheServices>();

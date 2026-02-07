@@ -100,6 +100,10 @@ public class AuthServices(UserManager<ApplicationUser> userManager ,
         // Or Use Check User 
         if(await _userManager.FindByEmailAsync(email) is not { } user)
             return Resault.Faliure<ResponseAuth>(UserErrors.InvalidCredintial);
+        if(user.IsDisabled)
+            return Resault.Faliure<ResponseAuth>(UserErrors.DisabledUser);
+
+
 
         //Check Password
 
@@ -112,7 +116,7 @@ public class AuthServices(UserManager<ApplicationUser> userManager ,
 
         // Or Use PasswordSignInAsync In SignInManager to Check Confirm Email
 
-        var resault = await _signInManager.PasswordSignInAsync(user, password, false, false);
+        var resault = await _signInManager.PasswordSignInAsync(user, password, false, true);
 
         if(resault.Succeeded)
         {
@@ -155,15 +159,21 @@ public class AuthServices(UserManager<ApplicationUser> userManager ,
             return Resault.Success(response);
 
         }
-        return Resault.Faliure<ResponseAuth>(resault.IsNotAllowed ? UserErrors.EmailNotConfirmed : UserErrors.InvalidCredintial);
+        // Check If First  If User Is Locked Out Or EmailNotConfirmed To Sign In Else This User Is InvalidCredintial  And  Return Error Message
+        var error = resault.IsLockedOut
+            ? UserErrors.LockedUser
+            : resault.IsNotAllowed
+            ? UserErrors.EmailNotConfirmed
+            : UserErrors.InvalidCredintial;
+        return Resault.Faliure<ResponseAuth>(error);
 
 
-     
 
 
+ 
     }
 
-
+    
 
     public async Task<Resault<ResponseAuth>> GetRefreshTokenAsync(string token, string refreshToken, CancellationToken cancellationToken = default)
     {
@@ -172,8 +182,15 @@ public class AuthServices(UserManager<ApplicationUser> userManager ,
             return Resault.Faliure<ResponseAuth>(UserErrors.InvalidJwtToken);
         var user = await _userManager.FindByIdAsync(userId);
         if(user == null)
-            return Resault.Faliure<ResponseAuth>(UserErrors.InvalidJwtToken); ;
-       var userRefreshToken = user.RefreshToken.SingleOrDefault(c => c.Token == refreshToken && c.IsActive);
+            return Resault.Faliure<ResponseAuth>(UserErrors.InvalidJwtToken);
+        // Check If User Is Disabled And Check User Is Locked Out By SignInManager 
+        if (user.IsDisabled)
+            return Resault.Faliure<ResponseAuth>(UserErrors.DisabledUser);
+
+        if(user.LockoutEnd != null && user.LockoutEnd > DateTime.UtcNow)
+            return Resault.Faliure<ResponseAuth>(UserErrors.LockedUser);
+
+        var userRefreshToken = user.RefreshToken.SingleOrDefault(c => c.Token == refreshToken && c.IsActive);
         if(userRefreshToken == null) 
             return Resault.Faliure<ResponseAuth>(UserErrors.InvalidRefreshToken); ;
         userRefreshToken.RevokedOn = DateTime.UtcNow;
