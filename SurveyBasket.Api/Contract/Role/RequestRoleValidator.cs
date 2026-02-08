@@ -2,9 +2,9 @@
 
 namespace SurveyBasket.Api.Contract.Role;
 
-public class RequestRoleValidator : AbstractValidator<RequestRole>
+public class RequestFilterValidator : AbstractValidator<RequestRole>
 {
-    public RequestRoleValidator()
+    public RequestFilterValidator()
     {
         RuleFor(c => c.Name)
             .NotEmpty()

@@ -6,6 +6,9 @@ using SurveyBasket.Api.Persistence;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.Extensions.Caching.Hybrid;
+using SurveyBasket.Api.Contract.Common;
+using System.Linq.Dynamic.Core;
+using MailKit.Search;
 
 namespace SurveyBasket.Api.Services;
 
@@ -20,16 +23,25 @@ public class QuestionServices(ApplicationDbContext context , HybridCache hybridC
     //private readonly IOutputCacheStore _outputCacheStore = outputCacheStore;
     //private readonly IMemoryCache _memoryCache = memoryCache;
 
-    public async Task<Resault<IEnumerable<ResponseQuestion>>> GetAllAsync(int pollId, CancellationToken cancellationToken = default)
+    public async Task<Resault<PaginatedList<ResponseQuestion>>> GetAllAsync(int pollId,RequestFilter filter , CancellationToken cancellationToken = default)
     {
         var isExistPoll = await _context.Polls.AnyAsync(c => c.Id == pollId, cancellationToken);
 
         if (!isExistPoll)
-            return Resault.Faliure<IEnumerable<ResponseQuestion>>(PollErrors.NotFound);
+            return Resault.Faliure<PaginatedList<ResponseQuestion>>(PollErrors.NotFound);
 
-        var question = await _context.Questions.
-            Where(c => c.PollId == pollId)
-            .Include(c => c.Answer)
+        var query = _context.Questions.Where(c => c.PollId == pollId );
+
+        if(!string.IsNullOrEmpty(filter.SearchValue))
+        {
+            query = query.Where(c => c.Content.Contains(filter.SearchValue));
+        }
+        if(!string.IsNullOrEmpty(filter.SortColumn))
+        {
+            query = query.OrderBy($"{filter.SortColumn} {filter.SortDirection}");
+        }
+           
+           var source = query.Include(c => c.Answer)
             //.Select(c => new ResponseQuestion
             //(
             //    c.Id,
@@ -40,9 +52,9 @@ public class QuestionServices(ApplicationDbContext context , HybridCache hybridC
             //        q.Content
             //     ))))
             .ProjectToType<ResponseQuestion>()
-                .AsNoTracking()
-                .ToListAsync(cancellationToken);
-        return Resault.Success<IEnumerable<ResponseQuestion>>(question);
+                .AsNoTracking();
+        var question = await PaginatedList<ResponseQuestion>.CreateAsync(source, filter.PageNumber, filter.PageSize, cancellationToken);
+        return Resault.Success<PaginatedList<ResponseQuestion>>(question);
     }
 
     public async Task<Resault<IEnumerable<ResponseQuestion>>> GetAvalibaleAsync(int pollId, string userId, CancellationToken cancellationToken = default)

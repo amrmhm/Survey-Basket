@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using SurveyBasket.Api.Contract.Common;
 using SurveyBasket.Api.Contract.Question;
 
 namespace SurveyBasket.Api.Controllers;
@@ -13,9 +14,9 @@ public class QuestionsController(IQuestionServices questionServices) : Controlle
     [HttpGet("")]
     [HasPermission(Permission.GetQuestions)]
 
-    public async Task<IActionResult> GetAll ([FromRoute] int pollId , CancellationToken cancellationToken )
+    public async Task<IActionResult> GetAll ([FromRoute] int pollId ,[FromQuery]RequestFilter filter , CancellationToken cancellationToken )
     {
-        var resualt = await _questionServices.GetAllAsync(pollId, cancellationToken);
+        var resualt = await _questionServices.GetAllAsync(pollId, filter, cancellationToken);
         
         return resualt.IsSuccess
             ? Ok(resualt.Value)
