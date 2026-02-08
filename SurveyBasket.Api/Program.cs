@@ -3,7 +3,9 @@
 using Hangfire;
 using Hangfire.Dashboard;
 using HangfireBasicAuthenticationFilter;
+using HealthChecks.UI.Client;
 using MapsterMapper;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using SurveyBasket.Api;
@@ -105,5 +107,18 @@ RecurringJob.AddOrUpdate("notificationService", () => notificationService.SendNe
 // Or Use Cron Expression to Determine Specific time
 //RecurringJob.AddOrUpdate("notificationService", () => notificationService.SendNewPollNotification(null) , "9 0 * * *");
 app.MapControllers();
+
+//Add Health Check Root Pattern 
+
+app.MapHealthChecks("health", new HealthCheckOptions
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
+
+app.MapHealthChecks("health-api", new HealthCheckOptions
+{
+    Predicate = c => c.Tags.Contains("Api") , // Add Spesific Api
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
 
 app.Run();

@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using SurveyBasket.Api.Authentication;
+using SurveyBasket.Api.Health;
 using SurveyBasket.Api.Persistence;
 using SurveyBasket.Api.Setting;
 using System;
@@ -57,7 +58,24 @@ public static class  DependancyInjection
         services.AddExceptionHandler<GLobleExceptionHandler>();
         services.AddProblemDetails();
 
-       
+        // Add Heathy Checks Using Ui Client Package
+        //services.AddHealthChecks()
+        //    .AddDbContextCheck<ApplicationDbContext>("DataBase");
+
+        //Or
+        // Add Heathy Checks Using Sql Server Package And Hangfire Package And Uri Package And Add Custom HealthChecks
+
+        var connectionString = configuration.GetConnectionString("DefaultConnection") ??
+    throw new InvalidOperationException("ConnectionString Was Not Found");
+        services.AddHealthChecks()
+            .AddSqlServer(name:"DataBase", connectionString : connectionString)
+            .AddHangfire(options =>
+            {
+                options.MinimumAvailableServers = 1;
+            })
+            .AddUrlGroup(name: "Google Api" , uri: new Uri("https://google.com"), tags: ["Api"], httpMethod:HttpMethod.Get) // Add Tages Add Verbs
+            .AddUrlGroup(name: "Meta Api" , uri: new Uri("https://facebook.com"), tags: ["Api"], httpMethod: HttpMethod.Get)
+            .AddCheck<MailProviderHealthChecks>(name: "MailProvider");
 
         return services;
     }
