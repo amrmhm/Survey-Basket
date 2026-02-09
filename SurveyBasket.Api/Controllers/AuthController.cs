@@ -1,12 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 using OneOf.Types;
 
 namespace SurveyBasket.Api.Controllers;
 [Route("[controller]")]
 [ApiController]
+[EnableRateLimiting( RateLimit.UserLimit)]
 public class AuthController(IAuthServices authServices,IOptions<JwtOption> jwtOption ) : ControllerBase
 {
     private readonly IAuthServices _authServices = authServices;
@@ -66,6 +68,7 @@ public class AuthController(IAuthServices authServices,IOptions<JwtOption> jwtOp
     }
 
     [HttpPost("register")]
+    [DisableRateLimiting]
     public async Task<IActionResult> GetRefresh([FromBody] RequestRegister request, CancellationToken cancellationToken)
     {
         var authResault = await _authServices.RegisterAsync(request, cancellationToken);
@@ -110,7 +113,7 @@ public class AuthController(IAuthServices authServices,IOptions<JwtOption> jwtOp
             ? Ok()
             : authResault.ToProblem();
     }
-  
+
 
 
     }

@@ -120,5 +120,7 @@ app.MapHealthChecks("health-api", new HealthCheckOptions
     Predicate = c => c.Tags.Contains("Api") , // Add Spesific Api
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
+//Add Rate Limitter
+app.UseRateLimiter();
 
 app.Run();

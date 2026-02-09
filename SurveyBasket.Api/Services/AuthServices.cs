@@ -447,6 +447,7 @@ public class AuthServices(UserManager<ApplicationUser> userManager ,
 
         BackgroundJob.Enqueue(() => _emailSender.SendEmailAsync(user.Email!, "SurveyBasket - Forget Password", bodyBuilder));
         
+        
         await Task.CompletedTask;
     }
 

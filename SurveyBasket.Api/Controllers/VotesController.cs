@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
+using Microsoft.AspNetCore.RateLimiting;
 using SurveyBasket.Api.Contract.Votes;
 using System.Security.Claims;
 
@@ -8,6 +9,7 @@ namespace SurveyBasket.Api.Controllers;
 [Route("api/polls/{pollId}/vote")]
 [ApiController]
 [Authorize(Roles =(DefaultRole.Member))]
+[EnableRateLimiting(RateLimit.ConcurrencyLimit)]
 public class VotesController(IQuestionServices questionServices , IVoteServices voteServices) : ControllerBase
 {
     private readonly IQuestionServices _questionServices = questionServices;
@@ -20,7 +22,8 @@ public class VotesController(IQuestionServices questionServices , IVoteServices 
     public async Task<IActionResult> StartVote ([FromRoute] int pollId , CancellationToken cancellationToken)
     {
         //this Extentions Methods to Return UserId from Authorize used http context
-        var userId = "2dd69da0-8b28-4112-af7b-f463f49c0213";  //User.GetUserId();
+        var userId =/* "2dd69da0-8b28-4112-af7b-f463f49c0213"; */
+        User.GetUserId();
         var resault = await _questionServices.GetAvalibaleAsync(pollId, userId!, cancellationToken);
         return resault.IsSuccess 
             ? Ok(resault.Value)

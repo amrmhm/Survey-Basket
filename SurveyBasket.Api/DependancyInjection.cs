@@ -2,6 +2,7 @@
 using MapsterMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
@@ -14,6 +15,7 @@ using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading.RateLimiting;
 
 namespace SurveyBasket.Api;
 
@@ -35,7 +37,8 @@ public static class  DependancyInjection
             .AddCorsPoliceServices(configuration)
             .AddConnectionString(configuration)
             .AddAuthenticationConfig(configuration)
-            .AddBackgroundJob(configuration);
+            .AddBackgroundJob(configuration)
+            .AddRateLimitter();
 
         services.AddScoped<IPollsServices, PollsServices>();
         services.AddScoped<IEmailSender, EmailServices>();
@@ -240,6 +243,97 @@ public static class  DependancyInjection
 
         // Add the processing server as IHostedService
         services.AddHangfireServer();
+
+        return services;
+    }
+    private static IServiceCollection AddRateLimitter (this IServiceCollection services)
+    {
+        //Add Customize Rate Limit for ipAddress 
+        services.AddRateLimiter(rateLimiterOption =>
+        {
+            rateLimiterOption.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+            rateLimiterOption.AddPolicy(RateLimit.IpLimit, option =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: option.Connection.RemoteIpAddress?.ToString(),
+                factory: options => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 2, //كم ريكوست ح اتعامل معه 
+                    Window = TimeSpan.FromSeconds(30) // بعد كم اتعامل مع ريكوست جديد
+                }));
+        });
+        //Add Customize Rate Limit for users 
+        services.AddRateLimiter(rateLimiterOption =>
+        {
+            rateLimiterOption.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+            rateLimiterOption.AddPolicy(RateLimit.UserLimit, option =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: option.User.GetUserId(),
+                factory: options => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 2, //كم ريكوست ح اتعامل معه 
+                    Window = TimeSpan.FromSeconds(30) // بعد كم اتعامل مع ريكوست جديد
+                }));
+        });
+
+        //Add Concurrency Limiter 
+
+        services.AddRateLimiter(rateLimiterOption =>
+        {
+            rateLimiterOption.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+            rateLimiterOption.AddConcurrencyLimiter(RateLimit.ConcurrencyLimit, option =>
+            {
+                option.PermitLimit = 2; // كم ريكوست يتنفذ في نفس الوقت
+                option.QueueLimit = 1; // كم ريكوست يكون enquery
+                option.QueueProcessingOrder = QueueProcessingOrder.OldestFirst; //fifo first in first out
+
+            });
+        });
+
+        //Add Token Bucket Limiter 
+        //services.AddRateLimiter(rateLimiterOption =>
+        //{
+        //    rateLimiterOption.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        //    rateLimiterOption.AddTokenBucketLimiter("token", option =>
+        //    {
+        //        option.TokenLimit = 2; //كم توكن لدي في الجردل
+        //        option.QueueLimit = 1;  // كم ريكوست يكون enquery
+        //        option.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        //        option.ReplenishmentPeriod = TimeSpan.FromSeconds(30); // يضيف توكن للجردل كل كم
+        //        option.TokensPerPeriod = 2; // يضيف عدد كم للجردل بعد يفضي
+        //        option.AutoReplenishment = true; // هل هنالك مكان فاضي في الجردل عشان يضيف 
+        //    });
+        //});
+
+        //Add FixedWindow 
+        //services.AddRateLimiter(rateLimiterOption =>
+        //{
+        //    rateLimiterOption.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        //    rateLimiterOption.AddFixedWindowLimiter("fixed", option =>
+        //    {
+        //        option.PermitLimit = 2; //كم ريكوست ح اتعامل معه 
+        //        option.Window = TimeSpan.FromSeconds(30); // بعد كم اتعامل مع ريكوست جديد
+        //        option.QueueLimit = 1;  // كم ريكوست يكون enquery
+        //        option.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+
+        //    });
+        //});
+
+        //Add AddSlidingWindowLimiter
+        //services.AddRateLimiter(rateLimiterOption =>
+        //{
+        //    rateLimiterOption.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        //    rateLimiterOption.AddSlidingWindowLimiter("sliding", option =>
+        //    {
+        //        option.PermitLimit = 2; //كم ريكوست ح اتعامل معه 
+        //        option.Window = TimeSpan.FromSeconds(30); // بعد كم اتعامل مع ريكوست جديد
+        //        option.SegmentsPerWindow = 2; //ح اقسم الويندو لي كم سيقمينت
+        //        option.QueueLimit = 1;  // كم ريكوست يكون enquery
+        //        option.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+
+        //    });
+        //});
 
         return services;
     }

@@ -7,6 +7,7 @@ using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.RateLimiting;
 using SurveyBasket.Api.Abstractions;
 using SurveyBasket.Api.Contract.Poll;
 
@@ -32,6 +33,7 @@ public class PollsController(IPollsServices pollsServices) : ControllerBase
     }
     [Authorize(Roles =DefaultRole.Member)]
     [HttpGet("current")]
+    [EnableRateLimiting("userlimit")]
     public async Task<IActionResult> GetCurrent(CancellationToken cancellationToken)
     {
         
