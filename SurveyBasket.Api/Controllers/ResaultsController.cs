@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace SurveyBasket.Api.Controllers;
+[ApiVersion(1, Deprecated = true)]
+[ApiVersion(2)]
 [Route("api/polls/{pollId}/[controller]")]
 [ApiController]
 [HasPermission(Permission.GetResaults)]

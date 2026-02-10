@@ -18,13 +18,27 @@ public class PollsServices(ApplicationDbContext context,
         .AsNoTracking()
         .ToListAsync(cancellationToken);
 
-    public async Task<IEnumerable<ResponsePoll>> GetCurrentAsync(CancellationToken cancellationToken = default) =>
+    public async Task<IEnumerable<ResponsePoll>> GetCurrentAsyncV1(CancellationToken cancellationToken = default) =>
 
-     await _context.Polls
-        .Where(c => c.IsPublished && c.StartsAt <= DateOnly.FromDateTime(DateTime.UtcNow) && c.EndsAt >= DateOnly.FromDateTime(DateTime.UtcNow))
-        .ProjectToType<ResponsePoll>()
-        .AsNoTracking()
-        .ToListAsync(cancellationToken);
+    //await _context.Polls
+    //.Where(c => c.IsPublished && c.StartsAt <= DateOnly.FromDateTime(DateTime.UtcNow) && c.EndsAt >= DateOnly.FromDateTime(DateTime.UtcNow))
+    //.AsNoTracking()
+    //.ProjectToType<ResponsePoll>()
+    //.ToListAsync(cancellationToken);
+    await BuildContext()
+     .ProjectToType<ResponsePoll>()
+     .ToListAsync(cancellationToken);
+    public async Task<IEnumerable<ResponsePollV2>> GetCurrentAsyncV2(CancellationToken cancellationToken = default) =>
+
+     //await _context.Polls
+     //   .Where(c => c.IsPublished && c.StartsAt <= DateOnly.FromDateTime(DateTime.UtcNow) && c.EndsAt >= DateOnly.FromDateTime(DateTime.UtcNow))
+     //   .AsNoTracking()
+     //   .ProjectToType<ResponsePollV2>()
+     //   .ToListAsync(cancellationToken);
+
+     await BuildContext()
+    .ProjectToType<ResponsePollV2>()
+    .ToListAsync(cancellationToken);
     public async Task<Resault<ResponsePoll>> GetAsync(int id, CancellationToken cancellationToken = default)
     {
        var poll =  await _context.Polls.FindAsync(id, cancellationToken);
@@ -87,5 +101,11 @@ public class PollsServices(ApplicationDbContext context,
         if (currentPoll.IsPublished && currentPoll.StartsAt == DateOnly.FromDateTime(DateTime.UtcNow))
             BackgroundJob.Enqueue(() => _notificationService.SendNewPollNotification(currentPoll.Id));
         return Resault.Success();
+    }
+    public  IQueryable<Poll> BuildContext()
+    {
+        return _context.Polls
+        .Where(c => c.IsPublished && c.StartsAt <= DateOnly.FromDateTime(DateTime.UtcNow) && c.EndsAt >= DateOnly.FromDateTime(DateTime.UtcNow))
+        .AsNoTracking() ;
     }
 }

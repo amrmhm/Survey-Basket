@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.AspNetCore.RateLimiting;
@@ -6,6 +7,8 @@ using SurveyBasket.Api.Contract.Votes;
 using System.Security.Claims;
 
 namespace SurveyBasket.Api.Controllers;
+[ApiVersion(1, Deprecated = true)]
+[ApiVersion(2)]
 [Route("api/polls/{pollId}/vote")]
 [ApiController]
 [Authorize(Roles =(DefaultRole.Member))]

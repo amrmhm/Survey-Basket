@@ -1,16 +1,22 @@
-﻿using Hangfire;
+﻿using Asp.Versioning;
+using Hangfire;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
+using Microsoft.OpenApi.Models;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using SurveyBasket.Api.Authentication;
 using SurveyBasket.Api.Health;
 using SurveyBasket.Api.Persistence;
 using SurveyBasket.Api.Setting;
+using SurveyBasket.Api.Swagger;
+using SurveyBasket.Swagger;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -80,6 +86,33 @@ public static class  DependancyInjection
             .AddUrlGroup(name: "Meta Api" , uri: new Uri("https://facebook.com"), tags: ["Api"], httpMethod: HttpMethod.Get)
             .AddCheck<MailProviderHealthChecks>(name: "MailProvider");
 
+        //Add Api Versioning In Url
+        services.AddApiVersioning(options =>
+        {
+            //يمكنك استخدام اكتر من version 
+            // options.ApiVersionReader = ApiVersionReader.Combine(new UrlSegmentApiVersionReader(),new HeaderApiVersionReader());
+            //Add Api Versioning In Url
+            // options.ApiVersionReader = new UrlSegmentApiVersionReader();
+
+            //Add Api Versioning In Query String
+            // options.ApiVersionReader = new QueryStringApiVersionReader("x-apiversion");
+
+            //Add Api Versioning In Media Type
+            // options.ApiVersionReader = new MediaTypeApiVersionReader("x-apiversion");
+            
+            //Add Api Versioning In Header
+             options.ApiVersionReader = new HeaderApiVersionReader("x-apiversion");
+            options.DefaultApiVersion = new ApiVersion(1);  //default api
+            options.AssumeDefaultVersionWhenUnspecified = true; // لو لم يتم تحديد فيرجن اعمل ال dufualt
+            options.ReportApiVersions = true;
+        })
+            .AddApiExplorer(option =>
+            {
+                option.GroupNameFormat = "'v'V"; // format يبدا بحرف v ثم رقم الاصدار
+                option.SubstituteApiVersionInUrl = true;
+
+            });
+
         return services;
     }
     private static IServiceCollection AddConnectionString(this IServiceCollection services, IConfiguration configuration)
@@ -99,7 +132,12 @@ public static class  DependancyInjection
 
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen();
+        services.AddSwaggerGen(
+            option => option.OperationFilter<SwaggerDefaultValues>());// Add default Value In Header In Swagger In Version 2
+
+
+        // Add Services Implimentation 
+        services.AddTransient<IConfigureOptions<SwaggerGenOptions>,ConfigureSwaggerOptions>();
         return services;
     }
     private static IServiceCollection AddMapsterServices(this IServiceCollection services)

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -6,6 +7,8 @@ using Microsoft.Extensions.Options;
 using OneOf.Types;
 
 namespace SurveyBasket.Api.Controllers;
+[ApiVersion(1, Deprecated = true)]
+[ApiVersion(2)]
 [Route("[controller]")]
 [ApiController]
 [EnableRateLimiting( RateLimit.UserLimit)]
@@ -28,7 +31,11 @@ public class AuthController(IAuthServices authServices,IOptions<JwtOption> jwtOp
 
     //}
 
+ 
+   
+
     [HttpPost("")]
+  
     public async Task<IActionResult> LoginAsync([FromBody] LoginRequest request , CancellationToken cancellationToken)
     {
        
