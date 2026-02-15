@@ -1,12 +1,9 @@
-﻿
-using Microsoft.Identity.Client;
-using System.Reflection;
-using System.Security.Claims;
+﻿using System.Reflection;
 
 namespace SurveyBasket.Api.Persistence;
 
-public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options,IHttpContextAccessor httpContextAccessor)
-    :IdentityDbContext<ApplicationUser, ApplicationRole,string>(options)
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IHttpContextAccessor httpContextAccessor)
+    : IdentityDbContext<ApplicationUser, ApplicationRole, string>(options)
 {
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
@@ -19,10 +16,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         //Add Defalt Restrict To On Delete Methods
-       var cascadeFks = modelBuilder.Model
-            .GetEntityTypes()
-            .SelectMany(t => t.GetForeignKeys())
-            .Where(fk => fk.DeleteBehavior == DeleteBehavior.Cascade && !fk.IsOwnership);
+        var cascadeFks = modelBuilder.Model
+             .GetEntityTypes()
+             .SelectMany(t => t.GetForeignKeys())
+             .Where(fk => fk.DeleteBehavior == DeleteBehavior.Cascade && !fk.IsOwnership);
         foreach (var fk in cascadeFks)
         {
             fk.DeleteBehavior = DeleteBehavior.Restrict;
@@ -38,7 +35,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         modelBuilder.Entity<IdentityUserLogin<string>>().ToTable("UserLogin");
         modelBuilder.Entity<IdentityUserClaim<string>>().ToTable("UserCLaim");
         modelBuilder.Entity<IdentityUserToken<string>>().ToTable("UserToken");
-    
+
     }
 
     public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
@@ -51,11 +48,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         //var currentUseId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         foreach (var entryEntities in entries)
         {
-            if(entryEntities.State == EntityState.Added)
+            if (entryEntities.State == EntityState.Added)
             {
                 entryEntities.Property(c => c.CreateById).CurrentValue = currentUseId!;
             }
-            else if(entryEntities.State == EntityState.Modified)
+            else if (entryEntities.State == EntityState.Modified)
             {
                 entryEntities.Property(c => c.UpdateById).CurrentValue = currentUseId;
                 entryEntities.Property(c => c.UpdateOn).CurrentValue = DateTime.UtcNow;

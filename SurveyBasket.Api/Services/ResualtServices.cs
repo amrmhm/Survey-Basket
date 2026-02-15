@@ -1,6 +1,5 @@
 ﻿
 using SurveyBasket.Api.Persistence;
-using System.Collections.Generic;
 
 namespace SurveyBasket.Api.Services;
 
@@ -53,15 +52,15 @@ public class ResualtServices(ApplicationDbContext context) : IResualtServices
             return Resault.Faliure<IEnumerable<ResponseVotePerQuestion>>(PollErrors.NotFound);
 
 
-        var votePerQuestion =await _context.VoteAnswers
+        var votePerQuestion = await _context.VoteAnswers
             .Where(c => c.Vote.PollId == pollid)
-            .Select ( c => new ResponseVotePerQuestion(
+            .Select(c => new ResponseVotePerQuestion(
                 c.Question.Content,
                 c.Question.VoteAnswer
                 .GroupBy(
-                    c => new { AnswerId = c.AnswerId , AnswerContent = c.Answer.Content })
+                    c => new { AnswerId = c.AnswerId, AnswerContent = c.Answer.Content })
                 .Select(c => new ResponseVotePerAnswer(
-                   c.Key.AnswerContent ,
+                   c.Key.AnswerContent,
                    c.Count()))))
             .ToListAsync(cancellationToken);
 

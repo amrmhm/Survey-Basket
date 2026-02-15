@@ -3,7 +3,7 @@
 public static class RoleErrors
 {
     public static readonly Error NotFound =
-        new("Role.NotFound", "Role Is Not Found",StatusCodes.Status404NotFound);
+        new("Role.NotFound", "Role Is Not Found", StatusCodes.Status404NotFound);
     public static readonly Error InvalidPermission =
         new("Role.InvalidPermission", "Invalid Permission", StatusCodes.Status400BadRequest);
 

@@ -6,6 +6,6 @@ public class RequestVotesValidator : AbstractValidator<RequestVotes>
     {
         RuleFor(c => c.AnswerVotes)
             .NotNull();
-        RuleForEach(c => c.AnswerVotes).SetInheritanceValidator(c => c.Add(new RequestAnswerVotesValidator())) ;
+        RuleForEach(c => c.AnswerVotes).SetInheritanceValidator(c => c.Add(new RequestAnswerVotesValidator()));
     }
 }

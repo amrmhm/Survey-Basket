@@ -10,8 +10,8 @@ public class RequestAuthValidator : AbstractValidator<LoginRequest>
 
         RuleFor(c => c.Password)
             .NotEmpty();
-            
+
     }
 
-   
+
 }

@@ -29,11 +29,11 @@ public class EmailServices(IOptions<MailSetting> mailSetting) : IEmailSender
 
         using var smtp = new SmtpClient();
         smtp.Connect(_mailSetting.Host, _mailSetting.Port, SecureSocketOptions.StartTls);
-        smtp.Authenticate(_mailSetting.Mail, _mailSetting.Password );
-      
+        smtp.Authenticate(_mailSetting.Mail, _mailSetting.Password);
+
 
         //Send Massage 
-       await smtp.SendAsync(massage);
+        await smtp.SendAsync(massage);
 
         //Disconnect Connection
         smtp.Disconnect(true);

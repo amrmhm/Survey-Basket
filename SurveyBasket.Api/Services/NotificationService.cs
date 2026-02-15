@@ -1,7 +1,6 @@
 ﻿
 using SurveyBasket.Api.Helpers;
 using SurveyBasket.Api.Persistence;
-using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 
 namespace SurveyBasket.Api.Services;
 
@@ -19,7 +18,7 @@ public class NotificationService(ApplicationDbContext context,
     public async Task SendNewPollNotification(int? pollId = null)
     {
         IEnumerable<Poll> polls = [];
-        if(pollId.HasValue)
+        if (pollId.HasValue)
         {
             var poll = await _context.Polls.SingleOrDefaultAsync(c => c.Id == pollId && c.IsPublished);
             polls = [poll!];
@@ -29,13 +28,14 @@ public class NotificationService(ApplicationDbContext context,
             polls = await _context.Polls.Where(c => c.IsPublished && c.StartsAt == DateOnly.FromDateTime(DateTime.UtcNow))
                 .AsNoTracking()
                 .ToListAsync();
-                
+
 
         }
 
-       
-        // TODO: Send Notification to Member users
-        var users = await _userManager.Users.ToListAsync();
+
+        //  Send Notification to Member users
+        //Select Member
+        var users = await _userManager.GetUsersInRoleAsync(DefaultRole.Member);
 
         //Add Original URL
         var origin = _httpContextAccessor.HttpContext?.Request.Headers.Origin;

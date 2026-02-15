@@ -1,8 +1,4 @@
-﻿
-
-using Microsoft.AspNetCore.Identity;
-
-namespace SurveyBasket.Api.Entites.EntitesConfigration;
+﻿namespace SurveyBasket.Api.Entites.EntitesConfigration;
 
 public class RoleClaimConfigration : IEntityTypeConfiguration<IdentityRoleClaim<string>>
 {
@@ -30,6 +26,6 @@ public class RoleClaimConfigration : IEntityTypeConfiguration<IdentityRoleClaim<
 
         builder.HasData(adminCliam);
 
-       
+
     }
 }

@@ -1,7 +1,7 @@
 ﻿namespace SurveyBasket.Api.Contract.Resault;
 
 public record ResponseVotePerDay(
-    DateOnly Date ,
+    DateOnly Date,
     int NumberOfVote
-    
+
     );

@@ -2,7 +2,7 @@
 
 public record RequestRole
 (
-    string Name ,
+    string Name,
     IList<string> Permissions
 
 );

@@ -1,18 +1,14 @@
 ﻿using Asp.Versioning;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
-using OneOf.Types;
 
 namespace SurveyBasket.Api.Controllers;
 [ApiVersion(1, Deprecated = true)]
 [ApiVersion(2)]
 [Route("[controller]")]
 [ApiController]
-[EnableRateLimiting( RateLimit.UserLimit)]
-public class AuthController(IAuthServices authServices,IOptions<JwtOption> jwtOption ) : ControllerBase
+[EnableRateLimiting(RateLimit.UserLimit)]
+public class AuthController(IAuthServices authServices, IOptions<JwtOption> jwtOption) : ControllerBase
 {
     private readonly IAuthServices _authServices = authServices;
     private readonly JwtOption _jwtOption = jwtOption.Value;
@@ -31,15 +27,15 @@ public class AuthController(IAuthServices authServices,IOptions<JwtOption> jwtOp
 
     //}
 
- 
-   
+
+
 
     [HttpPost("")]
-  
-    public async Task<IActionResult> LoginAsync([FromBody] LoginRequest request , CancellationToken cancellationToken)
+
+    public async Task<IActionResult> LoginAsync([FromBody] LoginRequest request, CancellationToken cancellationToken)
     {
-       
-        var authResualt = await _authServices.GetTokenAsync(request.Email , request.Password , cancellationToken);
+
+        var authResualt = await _authServices.GetTokenAsync(request.Email, request.Password, cancellationToken);
 
         var problem = new ProblemDetails();
 
@@ -49,11 +45,11 @@ public class AuthController(IAuthServices authServices,IOptions<JwtOption> jwtOp
 
 
 
-       }
+    }
 
-        
-       
-    [HttpGet ("Refresh")]
+
+
+    [HttpGet("refresh")]
     public async Task<IActionResult> GetRefresh([FromBody] RequestRefreshToken request, CancellationToken cancellationToken)
     {
         var authResault = await _authServices.GetRefreshTokenAsync(request.token, request.refreshToken);
@@ -62,16 +58,16 @@ public class AuthController(IAuthServices authServices,IOptions<JwtOption> jwtOp
             ? Ok(authResault.Value)
             : authResault.ToProblem();
     }
-    [HttpPut ("Revoke-Refresh-Token")]
+    [HttpPut("revoke-refresh-roken")]
     public async Task<IActionResult> RevokeRefresh([FromBody] RequestRefreshToken request, CancellationToken cancellationToken)
     {
         var authResault = await _authServices.RevokeRefreshTokenAsync(request.token, request.refreshToken);
 
-        
-            return authResault.IsSuccess
-            ? Ok()
-            : authResault.ToProblem(); ;
-       
+
+        return authResault.IsSuccess
+        ? Ok()
+        : authResault.ToProblem(); ;
+
     }
 
     [HttpPost("register")]
@@ -123,4 +119,4 @@ public class AuthController(IAuthServices authServices,IOptions<JwtOption> jwtOp
 
 
 
-    }
+}

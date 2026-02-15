@@ -1,6 +1,4 @@
-﻿using SurveyBasket.Api.Contract.Question;
-
-namespace SurveyBasket.Api.Contract.Role;
+﻿namespace SurveyBasket.Api.Contract.Role;
 
 public class RequestFilterValidator : AbstractValidator<RequestRole>
 {
@@ -9,7 +7,7 @@ public class RequestFilterValidator : AbstractValidator<RequestRole>
         RuleFor(c => c.Name)
             .NotEmpty()
             .WithMessage("Role name is required.")
-            .Length(3 , 256);
+            .Length(3, 256);
         RuleFor(c => c.Permissions)
             .NotNull()
             .NotEmpty();

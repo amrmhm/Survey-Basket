@@ -1,6 +1,4 @@
-﻿using SurveyBasket.Api.Abstractions.Const;
-
-namespace SurveyBasket.Api.Contract.Users;
+﻿namespace SurveyBasket.Api.Contract.Users;
 
 public class RequestUpdateProfileValidator : AbstractValidator<RequestUpdateProfile>
 {

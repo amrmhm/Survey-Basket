@@ -1,19 +1,14 @@
-﻿
-using Microsoft.Extensions.Caching.Memory;
+﻿using Microsoft.Extensions.Caching.Hybrid;
 using SurveyBasket.Api.Contract.Answer;
+using SurveyBasket.Api.Contract.Common;
 using SurveyBasket.Api.Contract.Question;
 using SurveyBasket.Api.Persistence;
-using System.Collections.Generic;
-using Microsoft.AspNetCore.OutputCaching;
-using Microsoft.Extensions.Caching.Hybrid;
-using SurveyBasket.Api.Contract.Common;
 using System.Linq.Dynamic.Core;
-using MailKit.Search;
 
 namespace SurveyBasket.Api.Services;
 
 
-public class QuestionServices(ApplicationDbContext context , HybridCache hybridCache ) : IQuestionServices
+public class QuestionServices(ApplicationDbContext context, HybridCache hybridCache) : IQuestionServices
 {
     private readonly ApplicationDbContext _context = context;
     private readonly HybridCache _hybridCache = hybridCache;
@@ -23,36 +18,36 @@ public class QuestionServices(ApplicationDbContext context , HybridCache hybridC
     //private readonly IOutputCacheStore _outputCacheStore = outputCacheStore;
     //private readonly IMemoryCache _memoryCache = memoryCache;
 
-    public async Task<Resault<PaginatedList<ResponseQuestion>>> GetAllAsync(int pollId,RequestFilter filter , CancellationToken cancellationToken = default)
+    public async Task<Resault<PaginatedList<ResponseQuestion>>> GetAllAsync(int pollId, RequestFilter filter, CancellationToken cancellationToken = default)
     {
         var isExistPoll = await _context.Polls.AnyAsync(c => c.Id == pollId, cancellationToken);
 
         if (!isExistPoll)
             return Resault.Faliure<PaginatedList<ResponseQuestion>>(PollErrors.NotFound);
 
-        var query = _context.Questions.Where(c => c.PollId == pollId );
+        var query = _context.Questions.Where(c => c.PollId == pollId);
 
-        if(!string.IsNullOrEmpty(filter.SearchValue))
+        if (!string.IsNullOrEmpty(filter.SearchValue))
         {
             query = query.Where(c => c.Content.Contains(filter.SearchValue));
         }
-        if(!string.IsNullOrEmpty(filter.SortColumn))
+        if (!string.IsNullOrEmpty(filter.SortColumn))
         {
             query = query.OrderBy($"{filter.SortColumn} {filter.SortDirection}");
         }
-           
-           var source = query.Include(c => c.Answer)
-            //.Select(c => new ResponseQuestion
-            //(
-            //    c.Id,
-            //    c.Content,
-            //    c.Answer.Select(q => new ResponseAnswer
-            //    (
-            //        q.Id,
-            //        q.Content
-            //     ))))
-            .ProjectToType<ResponseQuestion>()
-                .AsNoTracking();
+
+        var source = query.Include(c => c.Answer)
+         //.Select(c => new ResponseQuestion
+         //(
+         //    c.Id,
+         //    c.Content,
+         //    c.Answer.Select(q => new ResponseAnswer
+         //    (
+         //        q.Id,
+         //        q.Content
+         //     ))))
+         .ProjectToType<ResponseQuestion>()
+             .AsNoTracking();
         var question = await PaginatedList<ResponseQuestion>.CreateAsync(source, filter.PageNumber, filter.PageSize, cancellationToken);
         return Resault.Success<PaginatedList<ResponseQuestion>>(question);
     }
@@ -89,12 +84,12 @@ public class QuestionServices(ApplicationDbContext context , HybridCache hybridC
                  ))))
              .AsNoTracking()
              .ToListAsync(cancellationToken)
-             //,
-           //Add Expire Minutes To Hybrid Memory
-           //new HybridCacheEntryOptions
-           //{
-           //    Expiration = TimeSpan.FromMinutes(50)
-           //}
+            //,
+            //Add Expire Minutes To Hybrid Memory
+            //new HybridCacheEntryOptions
+            //{
+            //    Expiration = TimeSpan.FromMinutes(50)
+            //}
             );
 
 
@@ -153,31 +148,31 @@ public class QuestionServices(ApplicationDbContext context , HybridCache hybridC
 
 
         return Resault.Success<IEnumerable<ResponseQuestion>>(question!);
-                 
+
     }
 
     public async Task<Resault<ResponseQuestion>> GetAsync(int pollId, int id, CancellationToken cancellationToken = default)
     {
 
         var question = await _context.Questions
-            
+
             .Where(c => c.PollId == pollId && c.Id == id)
             .Include(c => c.Answer)
             .ProjectToType<ResponseQuestion>()
                 .AsNoTracking()
                 .SingleOrDefaultAsync(cancellationToken);
-        if(question == null)
+        if (question == null)
             return Resault.Faliure<ResponseQuestion>(QuestionErrors.NotFound);
-            return Resault.Success(question);
+        return Resault.Success(question);
     }
     public async Task<Resault<ResponseQuestion>> CreateAsync(int pollId, RequestQuestion request, CancellationToken cancellationToken = default)
     {
-        var isExistPoll = await _context.Polls.AnyAsync(c => c.Id == pollId ,cancellationToken);
+        var isExistPoll = await _context.Polls.AnyAsync(c => c.Id == pollId, cancellationToken);
 
         if (!isExistPoll)
             return Resault.Faliure<ResponseQuestion>(PollErrors.NotFound);
-        var isExistQuestion = await _context.Questions.AnyAsync(c => c.Content == request.Content && c.PollId == pollId,cancellationToken);
-        if(isExistQuestion)
+        var isExistQuestion = await _context.Questions.AnyAsync(c => c.Content == request.Content && c.PollId == pollId, cancellationToken);
+        if (isExistQuestion)
             return Resault.Faliure<ResponseQuestion>(QuestionErrors.DuplicateQuestion);
 
         var question = request.Adapt<Question>();
@@ -189,7 +184,7 @@ public class QuestionServices(ApplicationDbContext context , HybridCache hybridC
         //    question.Answer.Add(new Answer { Content = answer });
         //}
 
-        await _context.Questions.AddAsync(question ,cancellationToken);
+        await _context.Questions.AddAsync(question, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
         // So When Do I say The OutPut Cache Has Been Deleted
         //await _outputCacheStore.EvictByTagAsync("avalibaleQuestion", cancellationToken);
@@ -207,26 +202,26 @@ public class QuestionServices(ApplicationDbContext context , HybridCache hybridC
     }
 
 
-    public async Task<Resault> UpdateAsync(int pollId, int id, RequestQuestion request , CancellationToken cancellationToken = default)
+    public async Task<Resault> UpdateAsync(int pollId, int id, RequestQuestion request, CancellationToken cancellationToken = default)
     {
         var isExistquestion = await _context.Questions.AnyAsync(
             c => c.Id != id &&
             c.PollId == pollId &&
-            c.Content == request.Content,cancellationToken);
-        if(isExistquestion)
+            c.Content == request.Content, cancellationToken);
+        if (isExistquestion)
             return Resault.Faliure(QuestionErrors.DuplicateQuestion);
 
         var question = await _context.Questions.Include(c => c.Answer).SingleOrDefaultAsync(
             c => c.Id == id &&
-            c.PollId == pollId ,cancellationToken
+            c.PollId == pollId, cancellationToken
             );
-        if(question is null)
+        if (question is null)
             return Resault.Faliure(QuestionErrors.NotFound);
 
         question.Content = request.Content;
 
         // Current Answer  in db and Change Type to List String
-        var currentAnswer = question.Answer.Select(c =>  c.Content).ToList();
+        var currentAnswer = question.Answer.Select(c => c.Content).ToList();
 
         // Check answer in db or in request 
         //new Answer
@@ -236,7 +231,7 @@ public class QuestionServices(ApplicationDbContext context , HybridCache hybridC
 
         question.Answer.ToList().ForEach(answer =>
         answer.Active = request.Answer.Contains(answer.Content));
-            await _context.SaveChangesAsync(cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
         // So When Do I say The Cache Has Been Deleted
         //await _outputCacheStore.EvictByTagAsync("avalibaleQuestion", cancellationToken);
 
@@ -274,5 +269,5 @@ public class QuestionServices(ApplicationDbContext context , HybridCache hybridC
         return Resault.Success();
     }
 
-   
+
 }

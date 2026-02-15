@@ -1,6 +1,6 @@
 ﻿namespace SurveyBasket.Api.Contract.Authentication;
 
 public record LoginRequest(
-    string Email ,
+    string Email,
     string Password
     );

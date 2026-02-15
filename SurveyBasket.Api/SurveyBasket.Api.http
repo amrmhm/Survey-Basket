@@ -1,19 +1,32 @@
 @SurveyBasket.Api_HostAddress = https://localhost:7067
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5MDU0NTY0Ny0xNDEzLTRkY2QtODU0Zi1lNzhkOTFhZjU3NjUiLCJlbWFpbCI6ImFkbWluQHN1cnZleS1iYXNrZXQuY29tIiwiZ2l2ZW5fbmFtZSI6ImFkbWluIiwiZmFtaWx5X25hbWUiOiJzdXJ2ZXliYXNrZXQiLCJqdGkiOiI0NjNiYTc2OC1jYWEyLTQxMjctOGQyOS04NGZmZDlmMTJkNjYiLCJyb2xlcyI6WyJBZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJwb2xsczphZGQiLCJwb2xsczpkZWxldGUiLCJwb2xsczpyZWFkIiwicG9sbHM6dXBkYXRlIiwicXVlc3Rpb25zOmFkZCIsInF1ZXN0aW9uczpyZWFkIiwicXVlc3Rpb25zOnVwZGF0ZSIsInJlc2F1bHRzOnJlYWQiLCJyb2xlczphZGQiLCJyb2xlczpyZWFkIiwicm9sZXM6dXBkYXRlIiwidXNlcnM6YWRkIiwidXNlcnM6cmVhZCIsInVzZXJzOnVwZGF0ZSJdLCJleHAiOjE3NzA4NTcxMzIsImlzcyI6IlN1cnZleUJhc2tldEFwcCIsImF1ZCI6IlN1cnZleUJhc2tldEFwcCBVc2VycyJ9.edz8mDm3-xjS7rs-EP_6ebCX3vAtjFjx-NLnhnplN2U
+
 
 GET {{SurveyBasket.Api_HostAddress}}/weatherforecast/
+
 Accept: application/json
 
 ###
 
 GET {{SurveyBasket.Api_HostAddress}}/api/polls
+Authorization : Bearer {{token}}
 
 ###
 
 POST {{SurveyBasket.Api_HostAddress}}/auth
 Content-Type: application/json
 
+
+
 {
-  //LoginRequest
+  
+    "email" : "admin@survey-basket.com",
+    "password" : "Amoori9999$"
+  
 }
+
+###
+
+GET {{SurveyBasket.Api_HostAddress}}/auth/Refresh
 
 ###

@@ -2,9 +2,9 @@
 
 public record ResponseRoleDatails
 (
-    string Id ,
+    string Id,
     string Name,
-    bool IsDelete ,
+    bool IsDelete,
     IEnumerable<string> Permissions
 
     );

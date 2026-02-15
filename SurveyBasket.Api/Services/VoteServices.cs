@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using SurveyBasket.Api.Contract.Question;
-using SurveyBasket.Api.Contract.Votes;
+﻿using SurveyBasket.Api.Contract.Votes;
 using SurveyBasket.Api.Persistence;
 
 namespace SurveyBasket.Api.Services;
@@ -36,10 +34,10 @@ public class VoteServices(ApplicationDbContext context) : IVoteServices
             VoteAnswers = request.AnswerVotes.Adapt<IEnumerable<VoteAnswer>>().ToList()
         };
 
-        await _context.Votes.AddAsync(vote , cancellationToken);
+        await _context.Votes.AddAsync(vote, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return Resault.Success(); 
+        return Resault.Success();
 
 
 

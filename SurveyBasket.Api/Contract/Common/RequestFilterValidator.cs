@@ -8,6 +8,6 @@ public class RequestFilterValidator : AbstractValidator<RequestFilter>
     {
         RuleFor(c => c.PageSize)
             .LessThanOrEqualTo(20);
-      
+
     }
 }

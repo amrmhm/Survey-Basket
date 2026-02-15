@@ -2,8 +2,8 @@
 
 public record RequestUpdateUser
 (
-    string FirstName ,
-    string LastName ,
-    string Email ,
+    string FirstName,
+    string LastName,
+    string Email,
     IList<string> Roles
     );

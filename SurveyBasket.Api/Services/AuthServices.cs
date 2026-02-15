@@ -1,22 +1,17 @@
 ﻿
 using Hangfire;
 using Microsoft.AspNetCore.WebUtilities;
-using OneOf;
 using SurveyBasket.Api.Authentication;
-using SurveyBasket.Api.Contract.Authentication;
-using SurveyBasket.Api.Errors;
 using SurveyBasket.Api.Helpers;
 using SurveyBasket.Api.Persistence;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
-using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 
 namespace SurveyBasket.Api.Services;
 
-public class AuthServices(UserManager<ApplicationUser> userManager ,
-    IJwtProvider jwtProvider ,
-    SignInManager<ApplicationUser> signInManager ,
+public class AuthServices(UserManager<ApplicationUser> userManager,
+    IJwtProvider jwtProvider,
+    SignInManager<ApplicationUser> signInManager,
     IEmailSender emailSender,
     IHttpContextAccessor httpContextAccessor,
     ILogger<AuthServices> logger,
@@ -70,7 +65,7 @@ public class AuthServices(UserManager<ApplicationUser> userManager ,
 
     //    var response = new ResponseAuth(
 
-    //        Id: Guid.NewGuid().ToString(),
+    //        Id: Guid.CreateVersion7().ToString(),
     //        Email: user.Email,
     //        FirstName: user.FirstName,
     //        LastName: user.LastName,
@@ -98,9 +93,9 @@ public class AuthServices(UserManager<ApplicationUser> userManager ,
         //}
 
         // Or Use Check User 
-        if(await _userManager.FindByEmailAsync(email) is not { } user)
+        if (await _userManager.FindByEmailAsync(email) is not { } user)
             return Resault.Faliure<ResponseAuth>(UserErrors.InvalidCredintial);
-        if(user.IsDisabled)
+        if (user.IsDisabled)
             return Resault.Faliure<ResponseAuth>(UserErrors.DisabledUser);
 
 
@@ -118,15 +113,15 @@ public class AuthServices(UserManager<ApplicationUser> userManager ,
 
         var resault = await _signInManager.PasswordSignInAsync(user, password, false, true);
 
-        if(resault.Succeeded)
+        if (resault.Succeeded)
         {
 
             //Get Roles And Permissions
 
-            var (userRoles , permissions) = await GetRolesAndPermissions( user , cancellationToken);
+            var (userRoles, permissions) = await GetRolesAndPermissions(user, cancellationToken);
 
             //Generate JWT Token
-            var (token, expireIn) = _jwtProvider.GenrateToken(user , userRoles ,permissions);
+            var (token, expireIn) = _jwtProvider.GenrateToken(user, userRoles, permissions);
 
             //Genrate Refresh Token 
             var refreshToken = GenerateRefreshToken();
@@ -144,7 +139,7 @@ public class AuthServices(UserManager<ApplicationUser> userManager ,
 
             var response = new ResponseAuth(
 
-                Id: Guid.NewGuid().ToString(),
+                Id: Guid.CreateVersion7().ToString(),
                 Email: user.Email,
                 FirstName: user.FirstName,
                 LastName: user.LastName,
@@ -170,28 +165,28 @@ public class AuthServices(UserManager<ApplicationUser> userManager ,
 
 
 
- 
+
     }
 
-    
+
 
     public async Task<Resault<ResponseAuth>> GetRefreshTokenAsync(string token, string refreshToken, CancellationToken cancellationToken = default)
     {
         var userId = _jwtProvider.ValidateToken(token);
-        if(userId == null) 
+        if (userId == null)
             return Resault.Faliure<ResponseAuth>(UserErrors.InvalidJwtToken);
         var user = await _userManager.FindByIdAsync(userId);
-        if(user == null)
+        if (user == null)
             return Resault.Faliure<ResponseAuth>(UserErrors.InvalidJwtToken);
         // Check If User Is Disabled And Check User Is Locked Out By SignInManager 
         if (user.IsDisabled)
             return Resault.Faliure<ResponseAuth>(UserErrors.DisabledUser);
 
-        if(user.LockoutEnd != null && user.LockoutEnd > DateTime.UtcNow)
+        if (user.LockoutEnd != null && user.LockoutEnd > DateTime.UtcNow)
             return Resault.Faliure<ResponseAuth>(UserErrors.LockedUser);
 
         var userRefreshToken = user.RefreshToken.SingleOrDefault(c => c.Token == refreshToken && c.IsActive);
-        if(userRefreshToken == null) 
+        if (userRefreshToken == null)
             return Resault.Faliure<ResponseAuth>(UserErrors.InvalidRefreshToken); ;
         userRefreshToken.RevokedOn = DateTime.UtcNow;
 
@@ -200,7 +195,7 @@ public class AuthServices(UserManager<ApplicationUser> userManager ,
         var (userRoles, permissions) = await GetRolesAndPermissions(user, cancellationToken);
 
         //Generate JWT Token
-        var (newToken, expireIn) = _jwtProvider.GenrateToken(user , userRoles, permissions);
+        var (newToken, expireIn) = _jwtProvider.GenrateToken(user, userRoles, permissions);
 
         //Genrate Refresh Token 
         var newRefreshToken = GenerateRefreshToken();
@@ -218,7 +213,7 @@ public class AuthServices(UserManager<ApplicationUser> userManager ,
 
         var response = new ResponseAuth(
 
-            Id: Guid.NewGuid().ToString(),
+            Id: Guid.CreateVersion7().ToString(),
             Email: user.Email,
             FirstName: user.FirstName,
             LastName: user.LastName,
@@ -233,16 +228,16 @@ public class AuthServices(UserManager<ApplicationUser> userManager ,
     }
     public async Task<Resault> ConfirmEmailAsync(RequestConfirmEmail request)
     {
-        if(await _userManager.FindByIdAsync(request.UserId) is not { } user)
+        if (await _userManager.FindByIdAsync(request.UserId) is not { } user)
             return Resault.Faliure(UserErrors.InvalidCode);
 
-        if(user.EmailConfirmed)
+        if (user.EmailConfirmed)
             return Resault.Faliure(UserErrors.DuplicatedConfirmation);
 
         var code = request.Code;
         try
         {
-             code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
+            code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
         }
         catch (FormatException)
         {
@@ -251,21 +246,21 @@ public class AuthServices(UserManager<ApplicationUser> userManager ,
         }
 
         var resault = await _userManager.ConfirmEmailAsync(user, code);
-        if(resault.Succeeded)
+        if (resault.Succeeded)
         {
-            await _userManager.AddToRoleAsync(user , DefaultRole.Member);
+            await _userManager.AddToRoleAsync(user, DefaultRole.Member);
             return Resault.Success();
         }
 
-             var error = resault.Errors.First();
-            return Resault.Faliure(new Error(error.Code, error.Description, StatusCodes.Status400BadRequest));
+        var error = resault.Errors.First();
+        return Resault.Faliure(new Error(error.Code, error.Description, StatusCodes.Status400BadRequest));
     }
 
     public async Task<Resault> ResendConfirmEmailAsync(RequestResendConfirmEmail request)
     {
         if (await _userManager.FindByEmailAsync(request.Email) is not { } user)
             return Resault.Success();
-        if(user.EmailConfirmed)
+        if (user.EmailConfirmed)
             return Resault.Faliure(UserErrors.DuplicatedConfirmation);
 
         var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -285,21 +280,22 @@ public class AuthServices(UserManager<ApplicationUser> userManager ,
             return Resault.Success();
 
         if (!user.EmailConfirmed)
-            return Resault.Faliure(UserErrors.EmailNotConfirmed);
+            //Use => With Keyword To Change StatusCodes 
+            return Resault.Faliure(UserErrors.EmailNotConfirmed with { StatusCode = StatusCodes.Status400BadRequest });
         // Genarate Code from GeneratePasswordResetTokenAsync Methods
         var code = await _userManager.GeneratePasswordResetTokenAsync(user);
 
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
         _logger.LogInformation("Forget Password Email {code} :", code);
         //TODO Send Forget Password Email
-        await SendResetPasswordEmail( user , code);
+        await SendResetPasswordEmail(user, code);
         return Resault.Success();
     }
 
-    public async Task<Resault> ResetPasswordAsync (RequestResetPassword request)
+    public async Task<Resault> ResetPasswordAsync(RequestResetPassword request)
     {
-        var user = await _userManager.FindByEmailAsync (request.Email);
-        if(user is null && !user!.EmailConfirmed)
+        var user = await _userManager.FindByEmailAsync(request.Email);
+        if (user is null && !user!.EmailConfirmed)
             return Resault.Faliure(UserErrors.InvalidCode);
         IdentityResult resault;
         var code = request.Code;
@@ -314,25 +310,29 @@ public class AuthServices(UserManager<ApplicationUser> userManager ,
 
             // return Resault.Faliure(UserErrors.InvalidCode);
             //Or
-          resault =  IdentityResult.Failed( _userManager.ErrorDescriber.InvalidToken());
+            resault = IdentityResult.Failed(_userManager.ErrorDescriber.InvalidToken());
         }
 
-        if(resault.Succeeded)
+        if (resault.Succeeded)
             return Resault.Success();
         var error = resault.Errors.First();
         return Resault.Faliure(new Error(error.Code, error.Description, StatusCodes.Status401Unauthorized));
     }
     public async Task<Resault> RegisterAsync(RequestRegister request, CancellationToken cancellationToken = default)
     {
-        var emailIsExist = await _userManager.Users.AnyAsync(c => c.Email == request.Email , cancellationToken);
-        if(emailIsExist)
+        var emailIsExist = await _userManager.Users.AnyAsync(c => c.Email == request.Email, cancellationToken);
+        if (emailIsExist)
             return Resault.Faliure(UserErrors.DuplicateEmail);
 
         var user = request.Adapt<ApplicationUser>();
 
+        _logger.LogInformation(user.UserName);
+        user.UserName = request.Email;
+        _logger.LogInformation(user.UserName);
+
         var resualt = await _userManager.CreateAsync(user, request.Password);
 
-        if(resualt.Succeeded)
+        if (resualt.Succeeded)
         {
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
@@ -340,18 +340,18 @@ public class AuthServices(UserManager<ApplicationUser> userManager ,
 
             //TODO Send Confirm Email
 
-            
 
-            await SendConfirmationEmail(user ,code);
+
+            await SendConfirmationEmail(user, code);
 
 
             return Resault.Success();
 
         }
 
-            var error = resualt.Errors.First();
-            return Resault.Faliure(new Error(error.Code, error.Description, StatusCodes.Status400BadRequest));
-        
+        var error = resualt.Errors.First();
+        return Resault.Faliure(new Error(error.Code, error.Description, StatusCodes.Status400BadRequest));
+
     }
 
     public async Task<Resault> RevokeRefreshTokenAsync(string token, string refreshToken, CancellationToken cancellationToken = default)
@@ -373,12 +373,12 @@ public class AuthServices(UserManager<ApplicationUser> userManager ,
     }
 
 
-    private async Task <ResponseAuth> GenarateTokenAsync(ApplicationUser user, CancellationToken cancellationToken = default)
+    private async Task<ResponseAuth> GenarateTokenAsync(ApplicationUser user, CancellationToken cancellationToken = default)
     {
         //Get Roles And Permissions
 
         var (userRoles, permissions) = await GetRolesAndPermissions(user, cancellationToken);
-        var (token, expireIn) = _jwtProvider.GenrateToken(user , userRoles , permissions);
+        var (token, expireIn) = _jwtProvider.GenrateToken(user, userRoles, permissions);
 
         //Genrate Refresh Token 
 
@@ -397,7 +397,7 @@ public class AuthServices(UserManager<ApplicationUser> userManager ,
 
         var response = new ResponseAuth(
 
-            Id: Guid.NewGuid().ToString(),
+            Id: Guid.CreateVersion7().ToString(),
             Email: user.Email,
             FirstName: user.FirstName,
             LastName: user.LastName,
@@ -415,7 +415,7 @@ public class AuthServices(UserManager<ApplicationUser> userManager ,
     {
         return Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
     }
-    private async Task SendConfirmationEmail(ApplicationUser user , string code)
+    private async Task SendConfirmationEmail(ApplicationUser user, string code)
     {
 
         //Origin => https://localhost.....
@@ -429,10 +429,10 @@ public class AuthServices(UserManager<ApplicationUser> userManager ,
             );
 
         BackgroundJob.Enqueue(() => _emailSender.SendEmailAsync(user.Email!, "SurveyBasket - Email Confiremation", bodyBuilder));
-        
+
         await Task.CompletedTask;
     }
-    private async Task SendResetPasswordEmail(ApplicationUser user , string code)
+    private async Task SendResetPasswordEmail(ApplicationUser user, string code)
     {
 
         //Origin => https://localhost.....
@@ -446,12 +446,12 @@ public class AuthServices(UserManager<ApplicationUser> userManager ,
             );
 
         BackgroundJob.Enqueue(() => _emailSender.SendEmailAsync(user.Email!, "SurveyBasket - Forget Password", bodyBuilder));
-        
-        
+
+
         await Task.CompletedTask;
     }
 
-    private async Task<(IEnumerable<string>,IEnumerable<string>)> GetRolesAndPermissions(ApplicationUser user , CancellationToken cancellationToken = default)
+    private async Task<(IEnumerable<string>, IEnumerable<string>)> GetRolesAndPermissions(ApplicationUser user, CancellationToken cancellationToken = default)
     {
         //Get Roles
         var userRoles = await _userManager.GetRolesAsync(user);
@@ -476,7 +476,7 @@ public class AuthServices(UserManager<ApplicationUser> userManager ,
                                  .Distinct()
                                  .ToListAsync(cancellationToken);
 
-     return (userRoles , permissions);
+        return (userRoles, permissions);
     }
 
 

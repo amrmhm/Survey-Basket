@@ -1,34 +1,29 @@
 ﻿using Asp.Versioning;
+using Asp.Versioning.ApiExplorer;
 using Hangfire;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.Net.Http.Headers;
-using Microsoft.OpenApi.Models;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using SurveyBasket.Api.Authentication;
 using SurveyBasket.Api.Health;
+using SurveyBasket.Api.OpenApi;
 using SurveyBasket.Api.Persistence;
 using SurveyBasket.Api.Setting;
-using SurveyBasket.Api.Swagger;
-using SurveyBasket.Swagger;
-using Swashbuckle.AspNetCore.SwaggerGen;
-using System;
+//using SurveyBasket.Api.Swagger;
+//using SurveyBasket.Swagger;
+//using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.RateLimiting;
 
 namespace SurveyBasket.Api;
 
-public static class  DependancyInjection
+public static class DependancyInjection
 {
 
-    public static IServiceCollection AddDependancy ( this IServiceCollection services , IConfiguration configuration)
+    public static IServiceCollection AddDependancy(this IServiceCollection services, IConfiguration configuration)
     {
 
         services.AddControllers();
@@ -37,7 +32,8 @@ public static class  DependancyInjection
         services.AddHybridCache();
 
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-        services.AddSwaggerServices()
+        services
+            //.AddSwaggerServices()
             .AddMapsterServices()
             .AddFluentValidationServices()
             .AddCorsPoliceServices(configuration)
@@ -77,18 +73,20 @@ public static class  DependancyInjection
         var connectionString = configuration.GetConnectionString("DefaultConnection") ??
     throw new InvalidOperationException("ConnectionString Was Not Found");
         services.AddHealthChecks()
-            .AddSqlServer(name:"DataBase", connectionString : connectionString)
+            .AddSqlServer(name: "DataBase", connectionString: connectionString)
             .AddHangfire(options =>
             {
                 options.MinimumAvailableServers = 1;
             })
-            .AddUrlGroup(name: "Google Api" , uri: new Uri("https://google.com"), tags: ["Api"], httpMethod:HttpMethod.Get) // Add Tages Add Verbs
-            .AddUrlGroup(name: "Meta Api" , uri: new Uri("https://facebook.com"), tags: ["Api"], httpMethod: HttpMethod.Get)
+            .AddUrlGroup(name: "Google Api", uri: new Uri("https://google.com"), tags: ["Api"], httpMethod: HttpMethod.Get) // Add Tages Add Verbs
+            .AddUrlGroup(name: "Meta Api", uri: new Uri("https://facebook.com"), tags: ["Api"], httpMethod: HttpMethod.Get)
             .AddCheck<MailProviderHealthChecks>(name: "MailProvider");
 
         //Add Api Versioning In Url
         services.AddApiVersioning(options =>
+
         {
+
             //يمكنك استخدام اكتر من version 
             // options.ApiVersionReader = ApiVersionReader.Combine(new UrlSegmentApiVersionReader(),new HeaderApiVersionReader());
             //Add Api Versioning In Url
@@ -99,9 +97,9 @@ public static class  DependancyInjection
 
             //Add Api Versioning In Media Type
             // options.ApiVersionReader = new MediaTypeApiVersionReader("x-apiversion");
-            
+
             //Add Api Versioning In Header
-             options.ApiVersionReader = new HeaderApiVersionReader("x-apiversion");
+            options.ApiVersionReader = new HeaderApiVersionReader("x-apiversion");
             options.DefaultApiVersion = new ApiVersion(1);  //default api
             options.AssumeDefaultVersionWhenUnspecified = true; // لو لم يتم تحديد فيرجن اعمل ال dufualt
             options.ReportApiVersions = true;
@@ -112,6 +110,10 @@ public static class  DependancyInjection
                 option.SubstituteApiVersionInUrl = true;
 
             });
+        // Add Open Api Versiong To Reqister IApiVersionDescriptionProviderIApiVersionDescriptionProvider
+        services.AddEndpointsApiExplorer()
+            .AddOpenApiServices();
+
 
         return services;
     }
@@ -127,17 +129,71 @@ public static class  DependancyInjection
         return services;
     }
 
-    private static IServiceCollection AddSwaggerServices(this IServiceCollection services)
+    //private static IServiceCollection AddSwaggerServices(this IServiceCollection services)
+    //{
+
+    //    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+    //    services.AddEndpointsApiExplorer();
+    //    services.AddSwaggerGen(
+    //        option => option.OperationFilter<SwaggerDefaultValues>());// Add default Value In Header In Swagger In Version 2
+
+
+    //    // Add Services Implimentation 
+    //    services.AddTransient<IConfigureOptions<SwaggerGenOptions>,ConfigureSwaggerOptions>();
+    //    return services;
+    //}
+    private static IServiceCollection AddOpenApiServices(this IServiceCollection services)
     {
 
+
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-        services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen(
-            option => option.OperationFilter<SwaggerDefaultValues>());// Add default Value In Header In Swagger In Version 2
+        //  services.AddEndpointsApiExplorer()
+        //    .AddOpenApi(
+        //Suport Authentication
+        //options =>
+        //{
+        //    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+        //}
+        // Add Change Title-Version-Description
+        //options =>
+        //{
+        //    options.AddDocumentTransformer((document, context, cancellationToken) =>
+        //    {
+        //        document.Info = new()
+        //        {
+        //            Title = "Checkout API",
+        //            Version = "v1",
+        //            Description = "API For Survey Basket."
+        //        };
+        //        return Task.CompletedTask;
+        //    });
+        //}
+        //  );
 
+        //Add Suport Version 2
+        var servicesProvider = services.BuildServiceProvider();
+        var apiVersionDescriptionProvider = servicesProvider.GetRequiredService<IApiVersionDescriptionProvider>();
+        foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)
+        {
+            services.AddOpenApi(description.GroupName,
+                options =>
+                {
+                    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+                    options.AddDocumentTransformer(new InformationSchemeTransformer(description));
+                    //Or Use 
+                    //    options.AddDocumentTransformer((document, context, cancellationToken) =>
+                    //{
+                    //    document.Info = new()
+                    //    {
+                    //        Title = "Survey Basket",
+                    //        Version = description.ApiVersion.ToString(),
+                    //        Description = $"API Descriptions {(description.IsDeprecated ? "This Api Has Been Deprecated" : string.Empty)}"
+                    //    };
+                    //    return Task.CompletedTask;
+                    //});
+                });
+        }
 
-        // Add Services Implimentation 
-        services.AddTransient<IConfigureOptions<SwaggerGenOptions>,ConfigureSwaggerOptions>();
         return services;
     }
     private static IServiceCollection AddMapsterServices(this IServiceCollection services)
@@ -158,12 +214,12 @@ public static class  DependancyInjection
 
         return services;
     }
-    private static IServiceCollection AddCorsPoliceServices(this IServiceCollection services,IConfiguration configuration)
+    private static IServiceCollection AddCorsPoliceServices(this IServiceCollection services, IConfiguration configuration)
     {
         var corsSetting = configuration.GetSection("AllowedOrigin").Get<string[]>();
         //Add CORS Police
         services.AddCors(option =>
-        
+
             option.AddDefaultPolicy(builder =>
             builder
             .AllowAnyHeader()
@@ -197,7 +253,7 @@ public static class  DependancyInjection
 
         return services;
     }
-    private static IServiceCollection AddAuthenticationConfig(this IServiceCollection services , IConfiguration configuration)
+    private static IServiceCollection AddAuthenticationConfig(this IServiceCollection services, IConfiguration configuration)
     {  //Add Identity Config
         services.AddIdentity<ApplicationUser, ApplicationRole>()
              .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -205,12 +261,18 @@ public static class  DependancyInjection
 
         //Add Permission Policy Services
 
-        services.AddTransient<IAuthorizationHandler ,PermissionAuthorizationHandler >();
-        services.AddTransient<IAuthorizationPolicyProvider , PermissionAuthorizationPolicyProvider>();
+        services.AddTransient<IAuthorizationHandler, PermissionAuthorizationHandler>();
+        services.AddTransient<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
 
         // Add Mail Setting TO Use By IOption<MailSetting>
 
-        services.Configure<MailSetting>(configuration.GetSection(nameof(MailSetting)));
+        // services.Configure<MailSetting>(configuration.GetSection(nameof(MailSetting)));
+        //Or Use 
+
+        services.AddOptions<MailSetting>()
+         .BindConfiguration(nameof(MailSetting))
+         .ValidateDataAnnotations()
+         .ValidateOnStart();
 
         //Add Jwt Option To Use In Services Or Controller
 
@@ -221,10 +283,10 @@ public static class  DependancyInjection
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-           
+
 
         //Add Jwt Option To Use In Dependecy By Get
-       var jwtSetting = configuration.GetSection(JwtOption.SectionName).Get<JwtOption>();
+        var jwtSetting = configuration.GetSection(JwtOption.SectionName).Get<JwtOption>();
 
         //Add JwtBearer 
 
@@ -233,26 +295,26 @@ public static class  DependancyInjection
             option.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
             option.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         }).AddJwtBearer(opt =>
-        {
-            opt.SaveToken = true;
-            opt.RequireHttpsMetadata = true;
-            opt.TokenValidationParameters = new TokenValidationParameters()
-            {
-                ValidateIssuerSigningKey = true,
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSetting!.Key)),
-                ValidIssuer = jwtSetting.Issuer,
-                ValidAudience = jwtSetting.Audience
+       {
+           opt.SaveToken = true;
+           opt.RequireHttpsMetadata = true;
+           opt.TokenValidationParameters = new TokenValidationParameters()
+           {
+               ValidateIssuerSigningKey = true,
+               ValidateIssuer = true,
+               ValidateAudience = true,
+               ValidateLifetime = true,
+               IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSetting!.Key)),
+               ValidIssuer = jwtSetting.Issuer,
+               ValidAudience = jwtSetting.Audience
 
 
 
-                //IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!)),
-                //ValidIssuer = configuration["Jwt:Issuer"],
-                //ValidAudience = configuration["Jwt:Audience"]
-            };
-        });
+               //IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!)),
+               //ValidIssuer = configuration["Jwt:Issuer"],
+               //ValidAudience = configuration["Jwt:Audience"]
+           };
+       });
 
         //Add Change Default Identity  
         services.Configure<IdentityOptions>(options =>
@@ -265,6 +327,9 @@ public static class  DependancyInjection
             options.SignIn.RequireConfirmedEmail = true;
 
         });
+        // Add Authorization To Open Api Doc
+        //services.AddAuthorization(options =>
+        //options.AddPolicy("AdminOnly", option => option.RequireRole(DefaultRole.Admin))) ;
 
         return services;
     }
@@ -284,7 +349,7 @@ public static class  DependancyInjection
 
         return services;
     }
-    private static IServiceCollection AddRateLimitter (this IServiceCollection services)
+    private static IServiceCollection AddRateLimitter(this IServiceCollection services)
     {
         //Add Customize Rate Limit for ipAddress 
         services.AddRateLimiter(rateLimiterOption =>

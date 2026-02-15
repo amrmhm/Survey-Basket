@@ -1,6 +1,4 @@
-﻿using SurveyBasket.Api.Abstractions.Const;
-
-namespace SurveyBasket.Api.Contract.Users;
+﻿namespace SurveyBasket.Api.Contract.Users;
 
 public class RequestUpdateUserValidator : AbstractValidator<RequestUpdateUser>
 {
@@ -28,7 +26,7 @@ public class RequestUpdateUserValidator : AbstractValidator<RequestUpdateUser>
         RuleFor(c => c.Roles)
            .Must(c => c.Distinct().Count() == c.Count)
            .WithMessage(" Can Not Duplicate Role .")
-           .When ( c => c.Roles != null);
+           .When(c => c.Roles != null);
     }
 
 

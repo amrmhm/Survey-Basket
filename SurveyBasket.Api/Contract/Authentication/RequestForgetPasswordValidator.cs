@@ -7,5 +7,5 @@ public class RequestForgetPasswordValidator : AbstractValidator<RequestForgetPas
         RuleFor(c => c.Email)
            .NotEmpty()
            .EmailAddress();
-    }   
+    }
 }

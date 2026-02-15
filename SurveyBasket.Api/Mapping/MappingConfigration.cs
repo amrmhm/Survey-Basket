@@ -9,20 +9,20 @@ public class MappingConfigration : IRegister
     {
 
         config.NewConfig<RequestQuestion, Question>()
-            .Map(dest =>dest.Answer , src => src.Answer.Select(answer => new Answer { Content = answer}));
+            .Map(dest => dest.Answer, src => src.Answer.Select(answer => new Answer { Content = answer }));
 
         config.NewConfig<RequestRegister, ApplicationUser>()
-            .Map(dest => dest.UserName , src => src.Email);
+            .Map(dest => dest.UserName, src => src.Email);
 
         config.NewConfig<RequestCreateUser, ApplicationUser>()
-            .Map(dest => dest.UserName , src => src.Email);
+            .Map(dest => dest.UserName, src => src.Email);
 
         config.NewConfig<RequestRegister, ApplicationUser>()
-            .Map(dest => dest.EmailConfirmed , src => true);
+            .Map(dest => dest.EmailConfirmed, src => true);
 
         config.NewConfig<(ApplicationUser user, IList<string> role), ResponseUser>()
-            .Map(dest => dest , src => src.user)
-            .Map(dest => dest.Roles , src => src.role);
+            .Map(dest => dest, src => src.user)
+            .Map(dest => dest.Roles, src => src.role);
 
         config.NewConfig<RequestUpdateUser, ApplicationUser>()
          .Map(dest => dest.UserName, src => src.Email);

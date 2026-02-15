@@ -2,7 +2,7 @@
 
 public record ResponseRole
 (
-    string Id ,
-    string Name ,
+    string Id,
+    string Name,
     bool IsDelete
     );

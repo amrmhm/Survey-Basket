@@ -1,10 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace SurveyBasket.Api.Contract.Poll;
+﻿namespace SurveyBasket.Api.Contract.Poll;
 
 public record RequestPoll(
-    
-    string Title ,
+
+    string Title,
       string Summary,
   bool IsPublished,
   DateOnly StartsAt,
@@ -12,4 +10,4 @@ public record RequestPoll(
     );
 
 
-   
+

@@ -1,6 +1,4 @@
 ﻿using Asp.Versioning;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using SurveyBasket.Api.Contract.Users;
 
 namespace SurveyBasket.Api.Controllers;
@@ -23,20 +21,20 @@ public class AccountsController(IUserServices userServices) : ControllerBase
     }
     [HttpPut("info")]
 
-    public async Task<IActionResult> Info(RequestUpdateProfile request,CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Info(RequestUpdateProfile request, CancellationToken cancellationToken = default)
     {
         var userId = User.GetUserId();
-        var resault = await _userServices.UpdateProfileAsync(userId!,request, cancellationToken);
+        var resault = await _userServices.UpdateProfileAsync(userId!, request, cancellationToken);
         return NoContent();
     }
     [HttpPut("change-password")]
 
-    public async Task<IActionResult> ChangePassword(RequestChangePassword request,CancellationToken cancellationToken = default)
+    public async Task<IActionResult> ChangePassword(RequestChangePassword request, CancellationToken cancellationToken = default)
     {
         var userId = User.GetUserId();
-        var resault = await _userServices.ChangePasswordAsync(userId!,request, cancellationToken);
-        return resault.IsSuccess 
-            ? NoContent() 
+        var resault = await _userServices.ChangePasswordAsync(userId!, request, cancellationToken);
+        return resault.IsSuccess
+            ? NoContent()
             : resault.ToProblem();
     }
 }

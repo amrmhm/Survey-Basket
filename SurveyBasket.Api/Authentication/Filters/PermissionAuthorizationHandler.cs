@@ -1,10 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
-
-namespace SurveyBasket.Api.Authentication.Filters;
+﻿namespace SurveyBasket.Api.Authentication.Filters;
 
 public class PermissionAuthorizationHandler : AuthorizationHandler<PermissionRequirement>
 {
-    protected override  Task HandleRequirementAsync(AuthorizationHandlerContext context, PermissionRequirement requirement)
+    protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, PermissionRequirement requirement)
     {
 
         //var user = context.User.Identity;

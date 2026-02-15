@@ -17,17 +17,17 @@ public class CacheServices(IDistributedCache distributedCache, ILogger<CacheServ
 
         if (string.IsNullOrEmpty(cacheValue))
             return null;
-            return JsonSerializer.Deserialize<T>(cacheValue);
-            
+        return JsonSerializer.Deserialize<T>(cacheValue);
+
     }
 
     public async Task SetAsync<T>(string key, T value, CancellationToken cancellationToken = default) where T : class
     {
         _logger.LogInformation("Set Async ");
-       await _distributedCache.SetStringAsync(key ,JsonSerializer.Serialize(value), cancellationToken);
+        await _distributedCache.SetStringAsync(key, JsonSerializer.Serialize(value), cancellationToken);
     }
 
-    public async Task RemoveAsync(string key, CancellationToken cancellationToken = default) 
+    public async Task RemoveAsync(string key, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Remove Async ");
 

@@ -1,6 +1,4 @@
 ﻿using Asp.Versioning;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using SurveyBasket.Api.Contract.Role;
 
 namespace SurveyBasket.Api.Controllers;
@@ -28,10 +26,10 @@ public class RolesController(IRoleServices roleServices) : ControllerBase
     public async Task<IActionResult> Get([FromRoute] string id)
     {
         var resault = await _roleServices.GetAsync(id);
-        return 
-            resault.IsSuccess 
+        return
+            resault.IsSuccess
             ? Ok(resault.Value)
-            :resault.ToProblem();
+            : resault.ToProblem();
     }
     [HttpPost("")]
     [HasPermission(Permission.AddPRoles)]
@@ -41,26 +39,26 @@ public class RolesController(IRoleServices roleServices) : ControllerBase
         var resault = await _roleServices.CreateAsync(request);
         return
             resault.IsSuccess
-            ? CreatedAtAction(nameof(Get), new { id = resault.Value.Id }, resault.Value) 
+            ? CreatedAtAction(nameof(Get), new { id = resault.Value.Id }, resault.Value)
             : resault.ToProblem();
     }
-[HasPermission(Permission.UpdateRoles)]
+    [HasPermission(Permission.UpdateRoles)]
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update([FromRoute] string id ,[FromBody] RequestRole request)
+    public async Task<IActionResult> Update([FromRoute] string id, [FromBody] RequestRole request)
     {
-        var resault = await _roleServices.UpdateAsync(id ,request);
-        return 
-            resault.IsSuccess 
-            ?NoContent()
-            :resault.ToProblem();
+        var resault = await _roleServices.UpdateAsync(id, request);
+        return
+            resault.IsSuccess
+            ? NoContent()
+            : resault.ToProblem();
     }
     [HttpPut("{id}/toggle-status")]
-    public async Task<IActionResult> ToggleStatus([FromRoute] string id )
+    public async Task<IActionResult> ToggleStatus([FromRoute] string id)
     {
         var resault = await _roleServices.ToggleStatusAsync(id);
-        return 
-            resault.IsSuccess 
-            ?NoContent()
-            :resault.ToProblem();
+        return
+            resault.IsSuccess
+            ? NoContent()
+            : resault.ToProblem();
     }
 }

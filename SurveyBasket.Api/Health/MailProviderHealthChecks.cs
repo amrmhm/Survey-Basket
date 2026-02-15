@@ -12,8 +12,8 @@ public class MailProviderHealthChecks(IOptions<MailSetting> mailSetting) : IHeal
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
 
-		try
-		{
+        try
+        {
             using var smtp = new SmtpClient();
             smtp.Connect(_mailSetting.Host, _mailSetting.Port, SecureSocketOptions.StartTls);
             smtp.Authenticate(_mailSetting.Mail, _mailSetting.Password);
@@ -21,8 +21,8 @@ public class MailProviderHealthChecks(IOptions<MailSetting> mailSetting) : IHeal
             return await Task.FromResult(HealthCheckResult.Healthy());
 
         }
-		catch (Exception exception)
-		{
+        catch (Exception exception)
+        {
 
             return await Task.FromResult(HealthCheckResult.Unhealthy(exception: exception));
 

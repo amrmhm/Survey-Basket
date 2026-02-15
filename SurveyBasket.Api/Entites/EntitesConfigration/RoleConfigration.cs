@@ -1,8 +1,4 @@
-﻿
-
-using Microsoft.AspNetCore.Identity;
-
-namespace SurveyBasket.Api.Entites.EntitesConfigration;
+﻿namespace SurveyBasket.Api.Entites.EntitesConfigration;
 
 public class RoleConfigration : IEntityTypeConfiguration<ApplicationRole>
 {

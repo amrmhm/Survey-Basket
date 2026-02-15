@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.Contracts;
-
-namespace SurveyBasket.Api.Entites;
+﻿namespace SurveyBasket.Api.Entites;
 
 public class Vote
 {
@@ -8,7 +6,7 @@ public class Vote
 
     public int PollId { get; set; }
 
-    public string UserId { get; set; } =string.Empty;
+    public string UserId { get; set; } = string.Empty;
 
     public DateTime SubmitOn { get; set; } = DateTime.UtcNow;
 

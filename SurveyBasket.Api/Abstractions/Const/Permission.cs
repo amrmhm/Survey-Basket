@@ -14,11 +14,11 @@ public static class Permission
     public const string AddQuestions = "questions:add";
     public const string UpdatQuestions = "questions:update";
 
-   
+
     public const string GetUsers = "users:read";
     public const string AddUsers = "users:add";
     public const string UpdateUsers = "users:update";
-   
+
 
     public const string GetRoles = "roles:read";
     public const string AddPRoles = "roles:add";
@@ -26,9 +26,9 @@ public static class Permission
 
     public const string GetResaults = "resaults:read";
 
-    
+
     public static IList<string?> GetAllPermissions() =>
         typeof(Permission).GetFields().Select(c => c.GetValue(c) as string).ToList();
-    
+
 
 }
